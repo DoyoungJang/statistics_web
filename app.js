@@ -708,6 +708,59 @@ const resultMetaMap = {
   }),
 };
 
+const basicFormTooltips = {
+  "single-proportion": {
+    proportion: "추정하려는 단일 비율입니다. 선행연구, 파일럿 시험, 유사 제품 결과를 근거로 입력합니다.",
+    margin: "추정 정밀도입니다. 예를 들어 0.10이면 추정 비율의 허용 오차를 ±10% 폭으로 두겠다는 의미입니다.",
+    confidence: "신뢰구간 수준입니다. 95%를 선택하면 반복 표본추출 시 약 95%의 구간이 참값을 포함하도록 설계합니다.",
+    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다. 최종 모집 목표수 보정에 사용됩니다.",
+  },
+  "two-proportion": {
+    p1: "대조군 또는 기준군에서 기대하는 비율입니다.",
+    p2: "시험군 또는 신기술군에서 기대하는 비율입니다.",
+    alpha: "양측 유의수준입니다. 제1종 오류 확률로, 보통 0.05를 많이 사용합니다.",
+    power: "실제 차이가 있을 때 이를 검출할 확률입니다. 보통 80% 또는 90%를 사용합니다.",
+    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다.",
+  },
+  "two-mean": {
+    sigma: "두 군이 공유한다고 가정한 공통 표준편차입니다. 파일럿 데이터나 기존 연구를 근거로 입력합니다.",
+    delta: "검출하고자 하는 평균 차이입니다. 임상적으로 의미 있는 최소 차이를 반영합니다.",
+    alpha: "양측 유의수준입니다. 제1종 오류 확률로, 보통 0.05를 많이 사용합니다.",
+    power: "실제 평균 차이가 있을 때 이를 검출할 확률입니다.",
+    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다.",
+  },
+};
+
+const aiFieldTooltipBuilders = {
+  metric: () =>
+    "계산하려는 성능지표를 선택합니다. 선택한 metric에 따라 필요한 가정, 공식, 추가 입력 파라미터가 달라집니다.",
+  expectedValue: ({ metricLabel }) =>
+    `검증셋에서 기대하는 AI ${metricLabel} 값입니다. 파일럿 데이터, 내부 검증, 기존 버전 성능 등을 근거로 입력합니다.`,
+  benchmarkValue: ({ metricLabel }) =>
+    `${metricLabel}에 대해 비교 기준으로 사용할 benchmark 또는 comparator 성능값입니다.`,
+  nonInferiorityMargin: ({ meta }) =>
+    meta?.family === "mean-lower"
+      ? "benchmark 대비 허용할 최대 오차 증가 폭입니다. lower-is-better 지표에서는 benchmark + margin이 비열등성 한계값이 됩니다."
+      : "benchmark 대비 허용할 최대 성능 열세입니다. higher-is-better 지표에서는 benchmark - margin이 비열등성 한계값이 됩니다.",
+  alpha: ({ meta }) =>
+    meta?.family === "auc"
+      ? "one-sided alpha입니다. AUC에서는 0.025를 쓰면 통상 양측 95% 신뢰구간 해석과 대응합니다."
+      : "one-sided alpha입니다. 비열등성 검정의 제1종 오류 확률을 의미합니다.",
+  power: () => "비열등성을 검출할 목표 확률입니다. 보통 80% 또는 90%를 사용합니다.",
+  positiveCaseRate: () =>
+    "평가셋에서 양성 케이스가 차지하는 비율입니다. 민감도, AUC, 병변별 민감도 계산에서 총 케이스 수 환산에 사용됩니다.",
+  predictedNegativeRate: () =>
+    "NPV 계산에서 음성으로 판정될 것으로 예상되는 비율입니다. 필요한 predicted negative 수를 총 케이스 수로 바꿀 때 사용합니다.",
+  standardDeviation: ({ meta }) =>
+    meta?.family === "mean-lower"
+      ? "오차 endpoint의 표준편차입니다. 파일럿 데이터 또는 bootstrap resampling에서 추정하는 것이 바람직합니다."
+      : "metric의 케이스별 표준편차입니다. 파일럿 데이터 또는 bootstrap resampling에서 추정하는 것이 바람직합니다.",
+  lesionsPerPositiveCase: () =>
+    "양성 영상 1건당 기대되는 평균 병변 수입니다. 병변 수를 양성 케이스 수와 총 케이스 수로 환산할 때 사용합니다.",
+  dropout: () =>
+    "분석 제외, 참조표준 부재, 라벨 품질 문제 등을 고려한 예상 손실 비율입니다. 목표 모집 수 보정에 사용됩니다.",
+};
+
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const targetId = button.dataset.tab;
@@ -757,6 +810,10 @@ forms.forEach((form) => {
 
 metricAwareForms.forEach((form) => {
   initializeMetricAwareForm(form);
+});
+
+forms.forEach((form) => {
+  applyFormTooltips(form);
 });
 
 checkServerHealth();
@@ -831,6 +888,8 @@ function applyMetricConfig(form) {
   if (exampleText) {
     exampleText.textContent = config.exampleText;
   }
+
+  applyFormTooltips(form);
 }
 
 function applyExampleValues(form) {
@@ -863,6 +922,41 @@ function serializeForm(form) {
       return [key, normalized];
     })
   );
+}
+
+function applyFormTooltips(form) {
+  form.querySelectorAll("label").forEach((label) => {
+    const field = label.querySelector("input, select, textarea");
+    if (!field?.name) {
+      return;
+    }
+
+    const tooltip = getTooltipText(form, field.name);
+    if (tooltip) {
+      label.classList.add("has-tooltip");
+      label.dataset.tooltip = tooltip;
+      label.title = tooltip;
+    } else {
+      label.classList.remove("has-tooltip");
+      delete label.dataset.tooltip;
+      label.removeAttribute("title");
+    }
+  });
+}
+
+function getTooltipText(form, fieldName) {
+  const formKind = form.dataset.formKind;
+  if (!formKind) {
+    return basicFormTooltips[form.dataset.calculator]?.[fieldName] || "";
+  }
+
+  const metric = form.querySelector("[data-metric-select]")?.value;
+  const meta = resultMetaMap[`${formKind}:${metric}`];
+  const selectedOption = form.querySelector("[data-metric-select] option:checked");
+  const metricLabel = meta?.metricLabel || selectedOption?.textContent.trim() || "metric";
+  const builder = aiFieldTooltipBuilders[fieldName];
+
+  return typeof builder === "function" ? builder({ formKind, metric, meta, metricLabel }) : "";
 }
 
 function setLoadingState(container, button, isLoading) {

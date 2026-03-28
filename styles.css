@@ -255,6 +255,56 @@ h3 {
   color: var(--ink);
 }
 
+.calc-form label.has-tooltip {
+  position: relative;
+  padding-right: 28px;
+  cursor: help;
+}
+
+.calc-form label.has-tooltip::before {
+  content: "?";
+  position: absolute;
+  top: 1px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(15, 109, 99, 0.12);
+  color: var(--accent-deep);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.calc-form label.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: min(280px, calc(100vw - 64px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(24, 34, 47, 0.96);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.6;
+  box-shadow: 0 18px 40px rgba(24, 34, 47, 0.18);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+  z-index: 25;
+}
+
+.calc-form label.has-tooltip:hover::after,
+.calc-form label.has-tooltip:focus-within::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .calc-form input,
 .calc-form select {
   width: 100%;
