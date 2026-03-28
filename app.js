@@ -12,7 +12,7 @@ const metricConfigs = {
         benchmarkValue: "비교 기준 Accuracy",
       },
       visibleFields: [],
-      help: "Accuracy는 전체 평가 케이스를 기준으로 비열등성 proportion 계산을 수행합니다.",
+      help: "전체 케이스 중 AI가 맞게 판단한 비율로 샘플 수를 계산합니다.",
       exampleValues: {
         metric: "accuracy",
         expectedValue: 0.93,
@@ -32,7 +32,7 @@ const metricConfigs = {
         positiveCaseRate: "평가셋 내 양성 케이스 비율",
       },
       visibleFields: ["positiveCaseRate"],
-      help: "Sensitivity는 양성 케이스 수를 먼저 계산한 뒤 양성 케이스 비율로 총 케이스 수를 환산합니다.",
+      help: "질환이나 이상이 있는 케이스를 얼마나 잘 찾는지 보는 지표입니다. 먼저 필요한 양성 케이스 수를 구한 뒤 전체 케이스 수로 바꿉니다.",
       exampleValues: {
         metric: "sensitivity",
         expectedValue: 0.91,
@@ -53,7 +53,7 @@ const metricConfigs = {
         positiveCaseRate: "평가셋 내 양성 케이스 비율",
       },
       visibleFields: ["positiveCaseRate"],
-      help: "Specificity는 음성 케이스 수를 기준으로 계산하므로, 양성 케이스 비율을 이용해 음성 비율을 자동 해석합니다.",
+      help: "정상 케이스를 얼마나 잘 정상으로 판단하는지 보는 지표입니다. 먼저 필요한 음성 케이스 수를 구합니다.",
       exampleValues: {
         metric: "specificity",
         expectedValue: 0.95,
@@ -74,7 +74,7 @@ const metricConfigs = {
         positiveCaseRate: "평가셋 내 양성 케이스 비율",
       },
       visibleFields: ["positiveCaseRate"],
-      help: "AUC는 Hanley-McNeil 분산 근사를 사용해 양성/음성 케이스 비율을 반영합니다. one-sided alpha 0.025는 통상 양측 95% 신뢰구간 해석과 대응됩니다.",
+      help: "AUC는 AI가 양성과 음성을 전반적으로 얼마나 잘 구분하는지 보는 값입니다. 양성과 음성의 비율이 결과에 영향을 줍니다.",
       exampleValues: {
         metric: "auc",
         expectedValue: 0.94,
@@ -95,7 +95,7 @@ const metricConfigs = {
         standardDeviation: "부트스트랩 SD",
       },
       visibleFields: ["standardDeviation"],
-      help: "F1-score는 집계형 metric이므로 파일럿 데이터 또는 bootstrap resampling으로 얻은 SD를 넣어 mean 근사식으로 계산합니다.",
+      help: "F1-score는 precision과 sensitivity를 함께 보는 점수입니다. 값의 흔들림 정도를 같이 넣어 샘플 수를 계산합니다.",
       exampleValues: {
         metric: "f1",
         expectedValue: 0.89,
@@ -116,7 +116,7 @@ const metricConfigs = {
         predictedNegativeRate: "예상 음성 판정 비율",
       },
       visibleFields: ["predictedNegativeRate"],
-      help: "NPV는 음성 판정된 케이스를 분석 단위로 사용하므로, 예상 음성 판정 비율을 이용해 총 케이스 수를 환산합니다.",
+      help: "정상이라고 판정한 케이스 중 실제로 정상일 가능성을 보는 지표입니다. 예상 정상 판정 비율을 이용해 전체 케이스 수를 계산합니다.",
       exampleValues: {
         metric: "npv",
         expectedValue: 0.97,
@@ -139,7 +139,7 @@ const metricConfigs = {
         standardDeviation: "케이스별 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "Segmentation Accuracy는 케이스별 평균 metric으로 보고 mean 비열등성 근사식을 적용합니다.",
+      help: "세그멘테이션 결과가 전체적으로 얼마나 잘 맞는지 보는 값입니다.",
       exampleValues: {
         metric: "accuracy",
         expectedValue: 0.94,
@@ -160,7 +160,7 @@ const metricConfigs = {
         standardDeviation: "케이스별 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "DSC는 케이스별 Dice Similarity Coefficient 평균과 표준편차를 기반으로 계산합니다.",
+      help: "AI가 그린 영역이 정답 영역과 얼마나 비슷한지 보는 값입니다. 1에 가까울수록 좋습니다.",
       exampleValues: {
         metric: "dsc",
         expectedValue: 0.9,
@@ -181,7 +181,7 @@ const metricConfigs = {
         standardDeviation: "케이스별 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "IoU도 케이스별 평균 metric으로 보고 mean 비열등성 근사식을 사용합니다.",
+      help: "AI가 찾은 영역과 정답 영역이 얼마나 겹치는지 보는 값입니다. 높을수록 좋습니다.",
       exampleValues: {
         metric: "iou",
         expectedValue: 0.83,
@@ -203,7 +203,7 @@ const metricConfigs = {
         benchmarkValue: "비교 기준 Detection Accuracy",
       },
       visibleFields: [],
-      help: "Detection Accuracy는 image-level 정확도를 proportion metric으로 가정합니다.",
+      help: "영상 단위로 AI가 맞게 판단한 비율을 기준으로 샘플 수를 계산합니다.",
       exampleValues: {
         metric: "accuracy",
         expectedValue: 0.91,
@@ -223,7 +223,7 @@ const metricConfigs = {
         standardDeviation: "부트스트랩 또는 케이스별 SD",
       },
       visibleFields: ["standardDeviation"],
-      help: "Detection IoU는 matched detection들의 평균 IoU 분포를 기반으로 mean 근사식을 적용합니다.",
+      help: "AI가 찾은 위치가 정답 위치와 얼마나 잘 겹치는지 보는 값입니다.",
       exampleValues: {
         metric: "iou",
         expectedValue: 0.78,
@@ -245,7 +245,7 @@ const metricConfigs = {
         lesionsPerPositiveCase: "양성 케이스당 평균 병변 수",
       },
       visibleFields: ["positiveCaseRate", "lesionsPerPositiveCase"],
-      help: "Lesion-level Sensitivity는 병변 수를 기준으로 계산한 뒤, 양성 케이스 비율과 병변 수/케이스로 전체 검증 규모를 환산합니다.",
+      help: "병변 하나하나를 AI가 얼마나 잘 찾는지 보는 지표입니다. 필요한 병변 수를 먼저 구한 뒤 케이스 수로 바꿉니다.",
       exampleValues: {
         metric: "lesion_sensitivity",
         expectedValue: 0.9,
@@ -267,7 +267,7 @@ const metricConfigs = {
         standardDeviation: "케이스별 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "FP per Image는 낮을수록 좋은 lower-better 지표로 계산합니다.",
+      help: "영상 1장당 AI가 잘못 표시하는 개수를 보는 값입니다. 낮을수록 좋습니다.",
       exampleValues: {
         metric: "fp_per_image",
         expectedValue: 0.18,
@@ -288,7 +288,7 @@ const metricConfigs = {
         standardDeviation: "부트스트랩 SD",
       },
       visibleFields: ["standardDeviation"],
-      help: "mAP는 집계형 metric이므로 bootstrap SD를 이용한 mean 근사식을 권장합니다.",
+      help: "탐지 성능을 전체적으로 요약한 점수입니다. 값의 흔들림 정도를 같이 넣어 샘플 수를 계산합니다.",
       exampleValues: {
         metric: "map",
         expectedValue: 0.81,
@@ -310,7 +310,7 @@ const metricConfigs = {
         benchmarkValue: "비교 기준 Accuracy",
       },
       visibleFields: [],
-      help: "Measurement Accuracy는 허용오차 내 비율을 proportion metric으로 정의한 경우에 사용합니다.",
+      help: "측정값이 허용 범위 안에 들어오는 비율을 기준으로 계산할 때 사용합니다.",
       exampleValues: {
         metric: "accuracy",
         expectedValue: 0.9,
@@ -330,7 +330,7 @@ const metricConfigs = {
         standardDeviation: "오차 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "MAE는 낮을수록 좋은 lower-better 지표입니다.",
+      help: "평균적으로 얼마나 틀리는지 보는 값입니다. 낮을수록 좋습니다.",
       exampleValues: {
         metric: "mae",
         expectedValue: 1.5,
@@ -351,7 +351,7 @@ const metricConfigs = {
         standardDeviation: "오차 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "RMSE도 lower-better 지표로 계산합니다.",
+      help: "큰 오차에 더 민감하게 반응하는 오차 지표입니다. 낮을수록 좋습니다.",
       exampleValues: {
         metric: "rmse",
         expectedValue: 2.1,
@@ -372,7 +372,7 @@ const metricConfigs = {
         standardDeviation: "오차 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "MAPE 역시 lower-better 지표입니다.",
+      help: "오차를 퍼센트로 본 값입니다. 낮을수록 좋습니다.",
       exampleValues: {
         metric: "mape",
         expectedValue: 7.5,
@@ -393,7 +393,7 @@ const metricConfigs = {
         standardDeviation: "부트스트랩 SD",
       },
       visibleFields: ["standardDeviation"],
-      help: "R-squared는 높을수록 좋은 higher-better 지표로 계산합니다.",
+      help: "AI 측정값이 정답값과 얼마나 비슷한 흐름을 보이는지 보는 값입니다. 높을수록 좋습니다.",
       exampleValues: {
         metric: "r_squared",
         expectedValue: 0.88,
@@ -710,55 +710,55 @@ const resultMetaMap = {
 
 const basicFormTooltips = {
   "single-proportion": {
-    proportion: "추정하려는 단일 비율입니다. 선행연구, 파일럿 시험, 유사 제품 결과를 근거로 입력합니다.",
-    margin: "추정 정밀도입니다. 예를 들어 0.10이면 추정 비율의 허용 오차를 ±10% 폭으로 두겠다는 의미입니다.",
-    confidence: "신뢰구간 수준입니다. 95%를 선택하면 반복 표본추출 시 약 95%의 구간이 참값을 포함하도록 설계합니다.",
-    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다. 최종 모집 목표수 보정에 사용됩니다.",
+    proportion: "미리 예상하는 비율입니다. 예를 들어 성공률이나 민감도가 80% 정도일 것 같으면 0.8을 넣습니다.",
+    margin: "어느 정도 오차까지 괜찮은지 정하는 값입니다. 예를 들어 0.10이면 결과가 대략 ±10% 범위 안에 들어오도록 보겠다는 뜻입니다.",
+    confidence: "결과를 얼마나 믿을 수 있게 잡을지 정하는 값입니다. 보통 95%를 많이 사용합니다.",
+    dropout: "중간 탈락이나 제외될 사람을 미리 예상한 비율입니다. 실제 모집 인원을 조금 더 크게 잡을 때 사용합니다.",
   },
   "two-proportion": {
-    p1: "대조군 또는 기준군에서 기대하는 비율입니다.",
-    p2: "시험군 또는 신기술군에서 기대하는 비율입니다.",
-    alpha: "양측 유의수준입니다. 제1종 오류 확률로, 보통 0.05를 많이 사용합니다.",
-    power: "실제 차이가 있을 때 이를 검출할 확률입니다. 보통 80% 또는 90%를 사용합니다.",
-    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다.",
+    p1: "기존 방법이나 대조군에서 예상하는 비율입니다.",
+    p2: "새 방법이나 시험군에서 예상하는 비율입니다.",
+    alpha: "우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값입니다. 보통 0.05를 씁니다.",
+    power: "정말 차이가 있을 때 그 차이를 찾아낼 가능성입니다. 보통 80%나 90%를 사용합니다.",
+    dropout: "중간 탈락이나 분석 제외를 미리 예상한 비율입니다.",
   },
   "two-mean": {
-    sigma: "두 군이 공유한다고 가정한 공통 표준편차입니다. 파일럿 데이터나 기존 연구를 근거로 입력합니다.",
-    delta: "검출하고자 하는 평균 차이입니다. 임상적으로 의미 있는 최소 차이를 반영합니다.",
-    alpha: "양측 유의수준입니다. 제1종 오류 확률로, 보통 0.05를 많이 사용합니다.",
-    power: "실제 평균 차이가 있을 때 이를 검출할 확률입니다.",
-    dropout: "분석 제외, 결측, 품질 불량 등을 고려한 예상 손실 비율입니다.",
+    sigma: "값이 사람마다 얼마나 들쭉날쭉한지 나타내는 값입니다. 보통 이전 연구나 파일럿 결과를 참고해 넣습니다.",
+    delta: "두 그룹 사이에서 최소 어느 정도 차이는 보여야 의미 있다고 볼지 정하는 값입니다.",
+    alpha: "우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값입니다. 보통 0.05를 씁니다.",
+    power: "정말 평균 차이가 있을 때 그 차이를 찾아낼 가능성입니다.",
+    dropout: "중간 탈락이나 분석 제외를 미리 예상한 비율입니다.",
   },
 };
 
 const aiFieldTooltipBuilders = {
   metric: () =>
-    "계산하려는 성능지표를 선택합니다. 선택한 metric에 따라 필요한 가정, 공식, 추가 입력 파라미터가 달라집니다.",
+    "어떤 성능값으로 샘플 수를 계산할지 고르는 항목입니다. 지표를 바꾸면 필요한 입력값도 함께 바뀝니다.",
   expectedValue: ({ metricLabel }) =>
-    `검증셋에서 기대하는 AI ${metricLabel} 값입니다. 파일럿 데이터, 내부 검증, 기존 버전 성능 등을 근거로 입력합니다.`,
+    `이번 시험에서 AI의 ${metricLabel}가 어느 정도 나올 것으로 예상하는지 적는 값입니다.`,
   benchmarkValue: ({ metricLabel }) =>
-    `${metricLabel}에 대해 비교 기준으로 사용할 benchmark 또는 comparator 성능값입니다.`,
+    `${metricLabel}에서 비교 기준으로 삼을 값입니다. 기존 제품, 기존 모델, 목표 성능 등을 넣으면 됩니다.`,
   nonInferiorityMargin: ({ meta }) =>
     meta?.family === "mean-lower"
-      ? "benchmark 대비 허용할 최대 오차 증가 폭입니다. lower-is-better 지표에서는 benchmark + margin이 비열등성 한계값이 됩니다."
-      : "benchmark 대비 허용할 최대 성능 열세입니다. higher-is-better 지표에서는 benchmark - margin이 비열등성 한계값이 됩니다.",
+      ? "기준값보다 얼마나 더 나빠져도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다."
+      : "기준값보다 얼마나 낮아도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다.",
   alpha: ({ meta }) =>
     meta?.family === "auc"
-      ? "one-sided alpha입니다. AUC에서는 0.025를 쓰면 통상 양측 95% 신뢰구간 해석과 대응합니다."
-      : "one-sided alpha입니다. 비열등성 검정의 제1종 오류 확률을 의미합니다.",
-  power: () => "비열등성을 검출할 목표 확률입니다. 보통 80% 또는 90%를 사용합니다.",
+      ? "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. AUC에서는 보통 0.025를 많이 사용합니다."
+      : "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. 보통 0.025나 0.05를 사용합니다.",
+  power: () => "기준을 만족했을 때 그것을 실제로 확인해낼 가능성입니다. 보통 80% 또는 90%를 많이 씁니다.",
   positiveCaseRate: () =>
-    "평가셋에서 양성 케이스가 차지하는 비율입니다. 민감도, AUC, 병변별 민감도 계산에서 총 케이스 수 환산에 사용됩니다.",
+    "전체 데이터 중 실제로 이상이나 질환이 있는 케이스의 비율입니다.",
   predictedNegativeRate: () =>
-    "NPV 계산에서 음성으로 판정될 것으로 예상되는 비율입니다. 필요한 predicted negative 수를 총 케이스 수로 바꿀 때 사용합니다.",
+    "전체 데이터 중 AI가 정상이라고 판단할 것으로 예상되는 비율입니다.",
   standardDeviation: ({ meta }) =>
     meta?.family === "mean-lower"
-      ? "오차 endpoint의 표준편차입니다. 파일럿 데이터 또는 bootstrap resampling에서 추정하는 것이 바람직합니다."
-      : "metric의 케이스별 표준편차입니다. 파일럿 데이터 또는 bootstrap resampling에서 추정하는 것이 바람직합니다.",
+      ? "오차값이 케이스마다 얼마나 들쭉날쭉한지 보여주는 값입니다. 이전 데이터가 있으면 그 값을 참고해 넣습니다."
+      : "성능값이 케이스마다 얼마나 들쭉날쭉한지 보여주는 값입니다. 이전 데이터가 있으면 그 값을 참고해 넣습니다.",
   lesionsPerPositiveCase: () =>
-    "양성 영상 1건당 기대되는 평균 병변 수입니다. 병변 수를 양성 케이스 수와 총 케이스 수로 환산할 때 사용합니다.",
+    "이상이 있는 영상 1건에 병변이 평균 몇 개쯤 있는지 적는 값입니다.",
   dropout: () =>
-    "분석 제외, 참조표준 부재, 라벨 품질 문제 등을 고려한 예상 손실 비율입니다. 목표 모집 수 보정에 사용됩니다.",
+    "중간 탈락, 라벨 문제, 분석 제외 등을 미리 예상한 비율입니다. 실제 모집 인원을 더 크게 잡을 때 사용합니다.",
 };
 
 tabButtons.forEach((button) => {
