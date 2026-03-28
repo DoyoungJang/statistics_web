@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>의료기기 인허가 통계 계산기</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Regulatory Statistics Workspace</p>
+        <h1>의료기기 인허가용<br>최소 샘플수 계산기</h1>
+        <p class="hero-text">
+          임상, 성능평가, 비교시험 문서 작성 전 단계에서 필요한 최소 샘플수를 빠르게 산출할 수 있도록 만든
+          첫 번째 MVP입니다. 초기 버전은 단일 비율 추정, 두 비율 비교, 두 평균 비교를 지원합니다.
+        </p>
+      </div>
+      <div class="hero-card">
+        <p class="card-label">현재 제공 계산</p>
+        <ul class="hero-list">
+          <li>단일 비율 추정</li>
+          <li>두 비율 비교</li>
+          <li>두 평균 비교</li>
+        </ul>
+        <p class="card-note">
+          계산 결과는 설계 검토용 초안입니다. 실제 인허가 제출 전에는 통계 담당자 검토가 필요합니다.
+        </p>
+      </div>
+    </header>
+
+    <main class="content-grid">
+      <section class="calculator-panel">
+        <div class="section-heading">
+          <p class="section-kicker">Calculator</p>
+          <h2>최소 샘플수 계산</h2>
+          <p>시험 목적에 맞는 계산 유형을 선택하고 가정을 입력하세요.</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="샘플수 계산 유형">
+          <button class="tab-button active" data-tab="single-proportion" type="button">단일 비율 추정</button>
+          <button class="tab-button" data-tab="two-proportion" type="button">두 비율 비교</button>
+          <button class="tab-button" data-tab="two-mean" type="button">두 평균 비교</button>
+        </div>
+
+        <div class="tab-panels">
+          <section class="tab-panel active" id="single-proportion">
+            <div class="panel-intro">
+              <h3>단일 비율 추정</h3>
+              <p>민감도, 특이도, 성공률처럼 하나의 비율을 목표 정밀도로 추정할 때 사용합니다.</p>
+            </div>
+
+            <form class="calc-form" data-calculator="single-proportion">
+              <label>
+                예상 비율 (p)
+                <input name="proportion" type="number" min="0.01" max="0.99" step="0.01" value="0.8">
+              </label>
+              <label>
+                허용 오차 (d)
+                <input name="margin" type="number" min="0.01" max="0.5" step="0.01" value="0.1">
+              </label>
+              <label>
+                신뢰수준
+                <select name="confidence">
+                  <option value="0.9">90%</option>
+                  <option value="0.95" selected>95%</option>
+                  <option value="0.99">99%</option>
+                </select>
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <div class="result-card" data-result="single-proportion">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="two-proportion">
+            <div class="panel-intro">
+              <h3>두 비율 비교</h3>
+              <p>대조군과 시험군의 성공률, 반응률, 사건발생률 차이를 검정하려는 경우에 사용합니다.</p>
+            </div>
+
+            <form class="calc-form" data-calculator="two-proportion">
+              <label>
+                대조군 비율 (p1)
+                <input name="p1" type="number" min="0.01" max="0.99" step="0.01" value="0.7">
+              </label>
+              <label>
+                시험군 비율 (p2)
+                <input name="p2" type="number" min="0.01" max="0.99" step="0.01" value="0.85">
+              </label>
+              <label>
+                유의수준 (alpha)
+                <select name="alpha">
+                  <option value="0.1">0.10</option>
+                  <option value="0.05" selected>0.05</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력 (power)
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <div class="result-card" data-result="two-proportion">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="two-mean">
+            <div class="panel-intro">
+              <h3>두 평균 비교</h3>
+              <p>연속형 지표의 평균 차이를 검정할 때 사용합니다. 두 군의 분산이 비슷하다는 가정을 둡니다.</p>
+            </div>
+
+            <form class="calc-form" data-calculator="two-mean">
+              <label>
+                공통 표준편차 (sigma)
+                <input name="sigma" type="number" min="0.01" step="0.01" value="12">
+              </label>
+              <label>
+                검출하려는 평균 차이 (delta)
+                <input name="delta" type="number" min="0.01" step="0.01" value="8">
+              </label>
+              <label>
+                유의수준 (alpha)
+                <select name="alpha">
+                  <option value="0.1">0.10</option>
+                  <option value="0.05" selected>0.05</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력 (power)
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <div class="result-card" data-result="two-mean">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="info-panel">
+        <section class="info-card">
+          <p class="section-kicker">Interpretation</p>
+          <h2>입력값 가이드</h2>
+          <ul class="info-list">
+            <li>예상 비율은 선행연구, 파일럿 시험, 유사 제품 결과를 기반으로 설정합니다.</li>
+            <li>허용 오차는 추정 정밀도입니다. 예를 들어 0.10이면 ±10% 폭을 의미합니다.</li>
+            <li>검정력은 보통 80% 또는 90%를 많이 사용합니다.</li>
+            <li>예상 탈락률을 입력하면 계산된 최소 샘플수와 모집 목표수를 함께 확인할 수 있습니다.</li>
+          </ul>
+        </section>
+
+        <section class="info-card">
+          <p class="section-kicker">Formula</p>
+          <h2>적용 공식</h2>
+          <div class="formula-block">
+            <p>단일 비율 추정</p>
+            <code>n = z² × p × (1 - p) / d²</code>
+          </div>
+          <div class="formula-block">
+            <p>두 비율 비교</p>
+            <code>n = (zα/2·√(2p̄(1-p̄)) + zβ·√(p1(1-p1)+p2(1-p2)))² / (p1-p2)²</code>
+          </div>
+          <div class="formula-block">
+            <p>두 평균 비교</p>
+            <code>n = 2 × (zα/2 + zβ)² × σ² / Δ²</code>
+          </div>
+        </section>
+
+        <section class="info-card warning-card">
+          <p class="section-kicker">Regulatory Note</p>
+          <h2>주의사항</h2>
+          <p>
+            본 계산기는 독립 표본, 양측 검정, 동일 배정비를 기본 가정으로 합니다. 비열등성, 동등성,
+            paired design, 생존분석, ROC, sensitivity/specificity 목표 하한 검증 등은 별도 공식을 적용해야 합니다.
+          </p>
+          <p>
+            민감도와 특이도 평가 시험은 양성군과 음성군 샘플수를 각각 따로 계산한 뒤, 실제 모집 가능 비율을 고려해
+            전체 모집계획으로 전환하는 것이 일반적입니다.
+          </p>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
