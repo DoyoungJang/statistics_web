@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 성능평가 비열등성 샘플수 계산기</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <nav class="page-nav" aria-label="페이지 이동">
+      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
+      <a class="page-nav-link active" href="/ai-performance.html">AI 성능평가 샘플수</a>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">AI Regulatory Performance Planning</p>
+        <h1>FDA·식약처 제출용<br>AI 성능평가 비열등성 샘플수 계산기</h1>
+        <p class="hero-text">
+          독립 시험셋에서 사전 정의한 benchmark 대비 AI 성능이 비열등한지 평가하기 위한 샘플수 계획 페이지입니다.
+          분류, 세그멘테이션, 디텍션, 계측 항목에서 원하는 metric을 선택해 비열등성 설계 기준으로 계산할 수 있습니다.
+        </p>
+      </div>
+      <div class="hero-card">
+        <p class="card-label">현재 제공 범주</p>
+        <ul class="hero-list">
+          <li>Classification: Accuracy, Sensitivity, Specificity, AUC (95% CI), F1-score, NPV</li>
+          <li>Segmentation: Accuracy, DSC, IoU</li>
+          <li>Detection: Accuracy, IoU, Lesion-level Sensitivity, FP per Image, mAP</li>
+          <li>Measurement: Accuracy, MAE, RMSE, MAPE, R-squared</li>
+        </ul>
+        <p class="server-status" data-server-status>서버 연결 확인 중...</p>
+        <p class="card-note">
+          AI 샘플수 계산은 one-sample 비열등성 설계를 기준으로 구현했습니다. comparator 또는 benchmark와 비열등성 마진을 먼저 정의한 뒤 사용하세요.
+        </p>
+      </div>
+    </header>
+
+    <main class="content-grid">
+      <section class="calculator-panel">
+        <div class="section-heading">
+          <p class="section-kicker">AI Performance</p>
+          <h2>비열등성 샘플수 계산</h2>
+          <p>각 범주에서 원하는 metric을 선택하면 필요한 입력 필드만 표시되며, 계산 후에는 인허가 문서용 한글·영문 예시 문장과 방법론 설명도 함께 보여줍니다.</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="AI 성능평가 샘플수 계산 유형">
+          <button class="tab-button active" data-tab="ai-classification" type="button">Classification</button>
+          <button class="tab-button" data-tab="ai-segmentation" type="button">Segmentation</button>
+          <button class="tab-button" data-tab="ai-detection" type="button">Detection</button>
+          <button class="tab-button" data-tab="ai-measurement" type="button">Measurement</button>
+        </div>
+
+        <div class="tab-panels">
+          <section class="tab-panel active" id="ai-classification">
+            <div class="panel-intro">
+              <h3>Classification</h3>
+              <p>원하는 metric을 선택하면 해당 비열등성 샘플수 설계에 맞는 입력 항목으로 전환됩니다.</p>
+            </div>
+
+            <form class="calc-form metric-aware-form" data-calculator="ai-classification" data-form-kind="classification">
+              <label>
+                Metric 선택
+                <select name="metric" data-metric-select>
+                  <option value="accuracy" selected>Accuracy</option>
+                  <option value="sensitivity">Sensitivity</option>
+                  <option value="specificity">Specificity</option>
+                  <option value="auc">AUC (95% CI 포함)</option>
+                  <option value="f1">F1-score</option>
+                  <option value="npv">NPV</option>
+                </select>
+              </label>
+              <label>
+                <span data-label-key="expectedValue">예상 Accuracy</span>
+                <input name="expectedValue" type="number" min="0" max="1" step="0.01" value="0.93">
+              </label>
+              <label>
+                <span data-label-key="benchmarkValue">비교 기준 Accuracy</span>
+                <input name="benchmarkValue" type="number" min="0" max="1" step="0.01" value="0.95">
+              </label>
+              <label>
+                <span data-label-key="nonInferiorityMargin">비열등성 마진</span>
+                <input name="nonInferiorityMargin" type="number" min="0.001" max="0.5" step="0.01" value="0.05">
+              </label>
+              <label>
+                one-sided alpha
+                <select name="alpha">
+                  <option value="0.05">0.05</option>
+                  <option value="0.025" selected>0.025</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label data-optional-field="positiveCaseRate">
+                <span data-label-key="positiveCaseRate">평가셋 내 양성 케이스 비율</span>
+                <input name="positiveCaseRate" type="number" min="0.01" max="0.99" step="0.01" value="0.3">
+              </label>
+              <label data-optional-field="predictedNegativeRate">
+                <span data-label-key="predictedNegativeRate">예상 음성 판정 비율</span>
+                <input name="predictedNegativeRate" type="number" min="0.01" max="0.99" step="0.01" value="0.65">
+              </label>
+              <label data-optional-field="standardDeviation">
+                <span data-label-key="standardDeviation">부트스트랩 SD</span>
+                <input name="standardDeviation" type="number" min="0.001" step="0.01" value="0.06">
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <p class="dynamic-help" data-dynamic-help></p>
+
+            <div class="result-card" data-result="ai-classification">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+
+            <section class="example-card">
+              <div class="example-header">
+                <div>
+                  <p class="example-kicker">Example</p>
+                  <h4>선택한 metric 예시</h4>
+                </div>
+                <button class="secondary-button" type="button" data-example-apply>
+                  선택 지표 예시 적용
+                </button>
+              </div>
+              <p class="example-text" data-example-text></p>
+            </section>
+
+            <section class="reference-card">
+              <p class="reference-title">Reference</p>
+              <ul class="reference-list">
+                <li><a href="https://www.fda.gov/medical-devices/medical-device-regulatory-science-research-programs-conducted-osel/evaluation-methods-artificial-intelligence-ai-enabled-medical-devices-performance-assessment-and" target="_blank" rel="noopener noreferrer">FDA: Evaluation Methods for AI-Enabled Medical Devices</a></li>
+                <li><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/non-inferiority-clinical-trials" target="_blank" rel="noopener noreferrer">FDA: Non-Inferiority Clinical Trials guidance</a></li>
+                <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6664615/" target="_blank" rel="noopener noreferrer">Molinaro, Diagnostic tests: positive predictive value</a></li>
+              </ul>
+            </section>
+          </section>
+
+          <section class="tab-panel" id="ai-segmentation">
+            <div class="panel-intro">
+              <h3>Segmentation</h3>
+              <p>케이스별 평균 metric 성능을 benchmark와 비교하는 비열등성 설계를 사용합니다.</p>
+            </div>
+
+            <form class="calc-form metric-aware-form" data-calculator="ai-segmentation" data-form-kind="segmentation">
+              <label>
+                Metric 선택
+                <select name="metric" data-metric-select>
+                  <option value="accuracy" selected>Accuracy</option>
+                  <option value="dsc">Dice Similarity Coefficient (DSC)</option>
+                  <option value="iou">IoU</option>
+                </select>
+              </label>
+              <label>
+                <span data-label-key="expectedValue">예상 Accuracy</span>
+                <input name="expectedValue" type="number" min="0" max="1" step="0.01" value="0.94">
+              </label>
+              <label>
+                <span data-label-key="benchmarkValue">비교 기준 Accuracy</span>
+                <input name="benchmarkValue" type="number" min="0" max="1" step="0.01" value="0.96">
+              </label>
+              <label>
+                비열등성 마진
+                <input name="nonInferiorityMargin" type="number" min="0.001" max="0.5" step="0.01" value="0.04">
+              </label>
+              <label>
+                <span data-label-key="standardDeviation">케이스별 표준편차</span>
+                <input name="standardDeviation" type="number" min="0.001" step="0.01" value="0.08">
+              </label>
+              <label>
+                one-sided alpha
+                <select name="alpha">
+                  <option value="0.05">0.05</option>
+                  <option value="0.025" selected>0.025</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <p class="dynamic-help" data-dynamic-help></p>
+
+            <div class="result-card" data-result="ai-segmentation">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+
+            <section class="example-card">
+              <div class="example-header">
+                <div>
+                  <p class="example-kicker">Example</p>
+                  <h4>선택한 metric 예시</h4>
+                </div>
+                <button class="secondary-button" type="button" data-example-apply>
+                  선택 지표 예시 적용
+                </button>
+              </div>
+              <p class="example-text" data-example-text></p>
+            </section>
+
+            <section class="reference-card">
+              <p class="reference-title">Reference</p>
+              <ul class="reference-list">
+                <li><a href="https://www.fda.gov/medical-devices/medical-device-regulatory-science-research-programs-conducted-osel/evaluation-methods-artificial-intelligence-ai-enabled-medical-devices-performance-assessment-and" target="_blank" rel="noopener noreferrer">FDA: Evaluation Methods for AI-Enabled Medical Devices</a></li>
+                <li><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/non-inferiority-clinical-trials" target="_blank" rel="noopener noreferrer">FDA: Non-Inferiority Clinical Trials guidance</a></li>
+                <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8993826/" target="_blank" rel="noopener noreferrer">Hicks et al., Evaluation metrics for medical AI</a></li>
+              </ul>
+            </section>
+          </section>
+
+          <section class="tab-panel" id="ai-detection">
+            <div class="panel-intro">
+              <h3>Detection</h3>
+              <p>Detection은 선택 metric에 따라 proportion, mean, lesion-level 설계로 나누어 계산합니다.</p>
+            </div>
+
+            <form class="calc-form metric-aware-form" data-calculator="ai-detection" data-form-kind="detection">
+              <label>
+                Metric 선택
+                <select name="metric" data-metric-select>
+                  <option value="accuracy" selected>Accuracy</option>
+                  <option value="iou">IoU</option>
+                  <option value="lesion_sensitivity">Lesion-level Sensitivity</option>
+                  <option value="fp_per_image">FP per Image</option>
+                  <option value="map">mAP</option>
+                </select>
+              </label>
+              <label>
+                <span data-label-key="expectedValue">예상 Accuracy</span>
+                <input name="expectedValue" type="number" min="0" step="0.01" value="0.91">
+              </label>
+              <label>
+                <span data-label-key="benchmarkValue">비교 기준 Accuracy</span>
+                <input name="benchmarkValue" type="number" min="0" step="0.01" value="0.94">
+              </label>
+              <label>
+                비열등성 마진
+                <input name="nonInferiorityMargin" type="number" min="0.001" step="0.01" value="0.05">
+              </label>
+              <label>
+                one-sided alpha
+                <select name="alpha">
+                  <option value="0.05">0.05</option>
+                  <option value="0.025" selected>0.025</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label data-optional-field="standardDeviation">
+                <span data-label-key="standardDeviation">표준편차</span>
+                <input name="standardDeviation" type="number" min="0.001" step="0.01" value="0.08">
+              </label>
+              <label data-optional-field="positiveCaseRate">
+                <span data-label-key="positiveCaseRate">평가셋 내 양성 케이스 비율</span>
+                <input name="positiveCaseRate" type="number" min="0.01" max="0.99" step="0.01" value="0.4">
+              </label>
+              <label data-optional-field="lesionsPerPositiveCase">
+                <span data-label-key="lesionsPerPositiveCase">양성 케이스당 평균 병변 수</span>
+                <input name="lesionsPerPositiveCase" type="number" min="0.1" step="0.1" value="1.4">
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <p class="dynamic-help" data-dynamic-help></p>
+
+            <div class="result-card" data-result="ai-detection">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+
+            <section class="example-card">
+              <div class="example-header">
+                <div>
+                  <p class="example-kicker">Example</p>
+                  <h4>선택한 metric 예시</h4>
+                </div>
+                <button class="secondary-button" type="button" data-example-apply>
+                  선택 지표 예시 적용
+                </button>
+              </div>
+              <p class="example-text" data-example-text></p>
+            </section>
+
+            <section class="reference-card">
+              <p class="reference-title">Reference</p>
+              <ul class="reference-list">
+                <li><a href="https://www.fda.gov/medical-devices/medical-device-regulatory-science-research-programs-conducted-osel/evaluation-methods-artificial-intelligence-ai-enabled-medical-devices-performance-assessment-and" target="_blank" rel="noopener noreferrer">FDA: Evaluation Methods for AI-Enabled Medical Devices</a></li>
+                <li><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/non-inferiority-clinical-trials" target="_blank" rel="noopener noreferrer">FDA: Non-Inferiority Clinical Trials guidance</a></li>
+                <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8993826/" target="_blank" rel="noopener noreferrer">Hicks et al., Evaluation metrics for medical AI</a></li>
+              </ul>
+            </section>
+          </section>
+
+          <section class="tab-panel" id="ai-measurement">
+            <div class="panel-intro">
+              <h3>Measurement</h3>
+              <p>Measurement는 accuracy 기반 proportion 설계와 error/regression 기반 mean 설계를 metric에 따라 다르게 적용합니다.</p>
+            </div>
+
+            <form class="calc-form metric-aware-form" data-calculator="ai-measurement" data-form-kind="measurement">
+              <label>
+                Metric 선택
+                <select name="metric" data-metric-select>
+                  <option value="accuracy" selected>Accuracy</option>
+                  <option value="mae">MAE</option>
+                  <option value="rmse">RMSE</option>
+                  <option value="mape">MAPE</option>
+                  <option value="r_squared">R-squared</option>
+                </select>
+              </label>
+              <label>
+                <span data-label-key="expectedValue">예상 Accuracy</span>
+                <input name="expectedValue" type="number" min="0" step="0.01" value="0.9">
+              </label>
+              <label>
+                <span data-label-key="benchmarkValue">비교 기준 Accuracy</span>
+                <input name="benchmarkValue" type="number" min="0" step="0.01" value="0.94">
+              </label>
+              <label>
+                비열등성 마진
+                <input name="nonInferiorityMargin" type="number" min="0.001" step="0.01" value="0.05">
+              </label>
+              <label>
+                one-sided alpha
+                <select name="alpha">
+                  <option value="0.05">0.05</option>
+                  <option value="0.025" selected>0.025</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+              <label>
+                검정력
+                <select name="power">
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="0.95">95%</option>
+                </select>
+              </label>
+              <label data-optional-field="standardDeviation">
+                <span data-label-key="standardDeviation">표준편차</span>
+                <input name="standardDeviation" type="number" min="0.001" step="0.01" value="1.2">
+              </label>
+              <label>
+                예상 탈락률
+                <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
+              </label>
+
+              <button class="primary-button" type="submit">계산하기</button>
+            </form>
+
+            <p class="dynamic-help" data-dynamic-help></p>
+
+            <div class="result-card" data-result="ai-measurement">
+              <p class="result-placeholder">값을 입력하고 계산하면 결과가 여기에 표시됩니다.</p>
+            </div>
+
+            <section class="example-card">
+              <div class="example-header">
+                <div>
+                  <p class="example-kicker">Example</p>
+                  <h4>선택한 metric 예시</h4>
+                </div>
+                <button class="secondary-button" type="button" data-example-apply>
+                  선택 지표 예시 적용
+                </button>
+              </div>
+              <p class="example-text" data-example-text></p>
+            </section>
+
+            <section class="reference-card">
+              <p class="reference-title">Reference</p>
+              <ul class="reference-list">
+                <li><a href="https://www.fda.gov/medical-devices/medical-device-regulatory-science-research-programs-conducted-osel/evaluation-methods-artificial-intelligence-ai-enabled-medical-devices-performance-assessment-and" target="_blank" rel="noopener noreferrer">FDA: Evaluation Methods for AI-Enabled Medical Devices</a></li>
+                <li><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/non-inferiority-clinical-trials" target="_blank" rel="noopener noreferrer">FDA: Non-Inferiority Clinical Trials guidance</a></li>
+                <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5652499/" target="_blank" rel="noopener noreferrer">Benchmark-based one-sample non-inferiority for medical devices</a></li>
+              </ul>
+            </section>
+          </section>
+        </div>
+      </section>
+
+      <aside class="info-panel">
+        <section class="info-card">
+          <p class="section-kicker">Interpretation</p>
+          <h2>입력값 가이드</h2>
+          <ul class="info-list">
+            <li>Accuracy, Sensitivity, Specificity, NPV는 proportion 기반 비열등성 계산으로 처리합니다.</li>
+              <li>AUC는 Hanley-McNeil 분산 근사를 사용하며 one-sided alpha 0.025 기준으로 양측 95% 신뢰구간 해석을 함께 맞춥니다.</li>
+            <li>F1-score, mAP, R-squared는 bootstrap 또는 파일럿 데이터 기반 SD를 이용한 mean 근사식으로 처리합니다.</li>
+            <li>FP per Image, MAE, RMSE, MAPE는 lower-better 지표로 계산합니다.</li>
+            <li>Measurement Accuracy는 허용오차 내 비율을 accuracy로 정의한 경우를 가정합니다.</li>
+          </ul>
+        </section>
+
+        <section class="info-card">
+          <p class="section-kicker">Formula</p>
+          <h2>적용 공식</h2>
+          <div class="formula-block">
+            <p>Proportion Metrics</p>
+            <code>H0: pAI ≤ pRef - ΔNI, n = (z1-α × √(p0(1-p0)) + z1-β × √(p1(1-p1)))² / (p1-p0)²</code>
+          </div>
+          <div class="formula-block">
+            <p>Mean Metrics, Higher Is Better</p>
+            <code>H0: μAI ≤ μRef - ΔNI, n = ((z1-α + z1-β) × σ / (μ1-μ0))²</code>
+          </div>
+          <div class="formula-block">
+            <p>Mean Metrics, Lower Is Better</p>
+            <code>H0: μAI ≥ μRef + ΔNI, n = ((z1-α + z1-β) × σ / (μ0-μ1))²</code>
+          </div>
+          <div class="formula-block">
+            <p>AUC</p>
+            <code>Hanley-McNeil variance approximation with fixed positive/negative case ratio</code>
+          </div>
+        </section>
+
+        <section class="info-card warning-card">
+          <p class="section-kicker">Assumptions</p>
+          <h2>주의사항</h2>
+          <p>
+            계산식은 규제기관이 직접 고정한 공식이 아니라, benchmark와 비열등성 마진을 두고 one-sample non-inferiority 문제로
+            실무적으로 구현한 표준 근사식입니다.
+          </p>
+          <p>
+            AUC, F1-score, mAP, R-squared처럼 집계형 metric은 분산 추정 방법에 따라 샘플수가 달라질 수 있습니다.
+            최종 제출 전에는 파일럿 데이터 기반 bootstrap 또는 통계분석계획서(SAP) 수준의 검토를 권장합니다.
+          </p>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

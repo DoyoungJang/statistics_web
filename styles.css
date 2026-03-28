@@ -36,6 +36,38 @@ select {
   padding: 36px 0 56px;
 }
 
+.page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.page-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(24, 34, 47, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.9);
+  color: var(--accent-deep);
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(24, 34, 47, 0.06);
+}
+
+.page-nav-link.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.page-nav-link:hover,
+.page-nav-link:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
@@ -266,12 +298,109 @@ h3 {
   box-shadow: none;
 }
 
+.secondary-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(15, 109, 99, 0.2);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--accent-deep);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .result-card {
   margin-top: 24px;
   padding: 20px;
   border-radius: 18px;
   background: var(--accent-soft);
   border: 1px solid rgba(15, 109, 99, 0.14);
+}
+
+.reference-card {
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(24, 34, 47, 0.08);
+  border-radius: 18px;
+  background: #f8f6f0;
+}
+
+.example-card {
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(216, 139, 51, 0.18);
+  border-radius: 18px;
+  background: rgba(216, 139, 51, 0.08);
+}
+
+.example-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.example-kicker {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warm);
+}
+
+.example-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.example-text {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.dynamic-help {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.field-hidden {
+  display: none;
+}
+
+.reference-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.reference-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.reference-list li + li {
+  margin-top: 10px;
+}
+
+.reference-list a {
+  color: var(--accent-deep);
+  text-decoration-thickness: 1px;
+}
+
+.reference-list a:hover,
+.reference-list a:focus-visible {
+  color: var(--accent);
+  outline: none;
 }
 
 .result-placeholder,
@@ -290,6 +419,208 @@ h3 {
   margin-top: 10px;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.summary-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(15, 109, 99, 0.14);
+}
+
+.summary-label {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.summary-value {
+  margin: 8px 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.result-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(15, 109, 99, 0.12);
+}
+
+.result-section-title {
+  margin: 0 0 12px;
+  font-size: 1.02rem;
+}
+
+.result-subsection + .result-subsection {
+  margin-top: 18px;
+}
+
+.result-subtitle {
+  margin: 0 0 10px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.result-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.result-list li + li {
+  margin-top: 8px;
+}
+
+.result-detail-list {
+  margin-top: 16px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.doc-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(36, 68, 102, 0.12);
+}
+
+.doc-lang {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.doc-body {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.8;
+}
+
+.inline-formula-card {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(36, 68, 102, 0.12);
+}
+
+.formula-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.inline-formula-card code {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(36, 68, 102, 0.06);
+  color: var(--ink);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.inline-formula-card code + code {
+  margin-top: 10px;
+}
+
+.figure-card {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(36, 68, 102, 0.12);
+}
+
+.figure-title {
+  margin: 0 0 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.theory-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.figure-caption {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.figure-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.figure-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(15, 109, 99, 0.08);
+  color: var(--accent-deep);
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.parameter-table-wrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.parameter-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.parameter-table th,
+.parameter-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(36, 68, 102, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.parameter-table th {
+  background: rgba(36, 68, 102, 0.06);
+  font-size: 0.84rem;
+  color: var(--accent-deep);
+}
+
+.parameter-table td {
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.inline-reference-list {
+  margin-top: 0;
 }
 
 .error-text {

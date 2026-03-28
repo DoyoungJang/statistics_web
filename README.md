@@ -8,6 +8,12 @@
 - 두 비율 비교용 최소 샘플수 계산
 - 두 평균 비교용 최소 샘플수 계산
 - 예상 탈락률 반영 모집 목표수 계산
+- AI 성능평가용 비열등성 샘플수 계산
+- Classification: Accuracy, Sensitivity, Specificity, AUC (95% CI 해석 포함), F1-score, NPV
+- Segmentation: Accuracy, Dice Similarity Coefficient (DSC), IoU
+- Detection: Accuracy, IoU, Lesion-level Sensitivity, FP per Image, mAP
+- Measurement: Accuracy, MAE, RMSE, MAPE, R-squared
+- AI 성능평가 계산 결과에 대한 한글·영문 인허가 문서 예시 문장, 이론적 방법, 파라미터, 개념 그림 표시
 
 ## 실행 방법
 
@@ -20,6 +26,11 @@
 7. 가정값을 입력하고 결과를 확인합니다.
 
 가상환경 생성부터 서버 실행까지의 자세한 순서는 [SETUP_GUIDE.md](/c:/Users/doyoungjang/PycharmProjects/statistics_web/SETUP_GUIDE.md#L1)를 참고하세요.
+
+페이지:
+
+- 기본 통계 계산: `http://127.0.0.1:8000/index.html`
+- AI 성능평가 비열등성 샘플수 계산: `http://127.0.0.1:8000/ai-performance.html`
 
 빠른 실행 예시:
 
@@ -61,7 +72,10 @@ python main.py
 - 양측 검정
 - 두 군 비교 시 1:1 배정
 - 두 평균 비교 시 두 군의 분산이 유사함
+- AI 성능평가 페이지는 사전 정의한 benchmark 대비 one-sample 비열등성 설계를 가정함
 
 ## 주의
 
-비열등성, 동등성, paired design, 생존분석, ROC 분석 등은 별도 공식을 추가로 구현해야 합니다.
+- AI 성능평가 페이지의 계산식은 규제기관이 직접 고정한 공식이 아니라, benchmark와 비열등성 마진을 둔 실무형 근사식입니다.
+- AUC, F1-score, mAP, R-squared처럼 집계형 지표는 파일럿 데이터 또는 bootstrap 기반 분산 추정값에 따라 샘플수가 달라질 수 있습니다.
+- AI 대 기존 기기 또는 AI 대 판독자 간 동시 비교 2군 비열등성 설계는 현재 별도 구현 대상입니다.
