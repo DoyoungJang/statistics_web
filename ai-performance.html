@@ -6,8 +6,20 @@
   <title>AI 성능평가 비열등성 샘플수 계산기</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="page page-ai">
   <div class="page-shell">
+    <div class="workspace-bar">
+      <div>
+        <p class="workspace-kicker">Strategy Analytics Suite</p>
+        <p class="workspace-title">AI Performance Planning Workspace</p>
+      </div>
+      <div class="workspace-meta">
+        <span class="workspace-chip is-accent">Regulatory AI</span>
+        <span class="workspace-chip">Benchmark Design</span>
+        <span class="workspace-chip is-muted">Internal Pilot</span>
+      </div>
+    </div>
+
     <nav class="page-nav" aria-label="페이지 이동">
       <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
       <a class="page-nav-link active" href="/ai-performance.html">AI 성능평가 샘플수</a>
@@ -21,6 +33,23 @@
           독립 시험셋에서 사전 정의한 benchmark 대비 AI 성능이 비열등한지 평가하기 위한 샘플수 계획 페이지입니다.
           분류, 세그멘테이션, 디텍션, 계측 항목에서 원하는 metric을 선택해 비열등성 설계 기준으로 계산할 수 있습니다.
         </p>
+        <div class="hero-metrics">
+          <article class="hero-metric">
+            <p class="hero-metric-label">Planning Mode</p>
+            <p class="hero-metric-value">Benchmark-based NI</p>
+            <p class="hero-metric-note">비열등성 마진과 참조 성능을 기준으로 사전 설계를 정리합니다.</p>
+          </article>
+          <article class="hero-metric">
+            <p class="hero-metric-label">Regulatory Focus</p>
+            <p class="hero-metric-value">Metric-aware inputs</p>
+            <p class="hero-metric-note">metric 특성에 따라 필요한 필드만 노출해 계산 흐름을 단순화했습니다.</p>
+          </article>
+          <article class="hero-metric">
+            <p class="hero-metric-label">Output Package</p>
+            <p class="hero-metric-value">수치 + 문장 예시</p>
+            <p class="hero-metric-note">결과뿐 아니라 제출 문서용 문장과 이론 요약까지 함께 제공합니다.</p>
+          </article>
+        </div>
       </div>
       <div class="hero-card">
         <p class="card-label">현재 제공 범주</p>
@@ -31,6 +60,16 @@
           <li>Measurement: Accuracy, MAE, RMSE, MAPE, R-squared</li>
         </ul>
         <p class="server-status" data-server-status>서버 연결 확인 중...</p>
+        <div class="hero-note-grid">
+          <div class="hero-note">
+            <p class="hero-note-label">Method Frame</p>
+            <p class="hero-note-value">One-sample non-inferiority</p>
+          </div>
+          <div class="hero-note">
+            <p class="hero-note-label">Best For</p>
+            <p class="hero-note-value">AI 성능평가 계획 초안 정리</p>
+          </div>
+        </div>
         <p class="card-note">
           AI 샘플수 계산은 one-sample 비열등성 설계를 기준으로 구현했습니다. comparator 또는 benchmark와 비열등성 마진을 먼저 정의한 뒤 사용하세요.
         </p>
@@ -43,6 +82,24 @@
           <p class="section-kicker">AI Performance</p>
           <h2>비열등성 샘플수 계산</h2>
           <p>각 범주에서 원하는 metric을 선택하면 필요한 입력 필드만 표시되며, 계산 후에는 인허가 문서용 한글·영문 예시 문장과 방법론 설명도 함께 보여줍니다.</p>
+        </div>
+
+        <div class="tool-strip">
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Statistical Frame</p>
+            <p class="tool-strip-value">비열등성 중심 설계</p>
+            <p class="tool-strip-note">benchmark, margin, alpha, power를 한 흐름에서 정리하도록 구성했습니다.</p>
+          </article>
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Metric Logic</p>
+            <p class="tool-strip-value">지표별 입력 최적화</p>
+            <p class="tool-strip-note">AUC, F1-score, mAP, error metric처럼 계산 방식이 다른 항목을 분기 처리합니다.</p>
+          </article>
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Document Use</p>
+            <p class="tool-strip-value">결과 해석까지 연결</p>
+            <p class="tool-strip-note">규제 문서 문장 예시와 가정, 참고문헌을 바로 확인할 수 있습니다.</p>
+          </article>
         </div>
 
         <div class="tabs" role="tablist" aria-label="AI 성능평가 샘플수 계산 유형">

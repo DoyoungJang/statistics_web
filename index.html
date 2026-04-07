@@ -6,8 +6,20 @@
   <title>의료기기 인허가 통계 계산기</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="page page-core">
   <div class="page-shell">
+    <div class="workspace-bar">
+      <div>
+        <p class="workspace-kicker">Strategy Analytics Suite</p>
+        <p class="workspace-title">Regulatory Decision Support Workspace</p>
+      </div>
+      <div class="workspace-meta">
+        <span class="workspace-chip is-accent">Executive Tooling</span>
+        <span class="workspace-chip">Protocol Planning</span>
+        <span class="workspace-chip is-muted">Internal Pilot</span>
+      </div>
+    </div>
+
     <nav class="page-nav" aria-label="페이지 이동">
       <a class="page-nav-link active" href="/index.html">기본 통계 계산</a>
       <a class="page-nav-link" href="/ai-performance.html">AI 성능평가 샘플수</a>
@@ -21,6 +33,23 @@
           임상, 성능평가, 비교시험 문서 작성 전 단계에서 필요한 최소 샘플수를 빠르게 산출할 수 있도록 만든
           첫 번째 MVP입니다. 초기 버전은 단일 비율 추정, 두 비율 비교, 두 평균 비교를 지원합니다.
         </p>
+        <div class="hero-metrics">
+          <article class="hero-metric">
+            <p class="hero-metric-label">Decision Use</p>
+            <p class="hero-metric-value">초기 설계 검토</p>
+            <p class="hero-metric-note">프로토콜 방향과 모집 규모를 빠르게 가늠할 수 있도록 구성했습니다.</p>
+          </article>
+          <article class="hero-metric">
+            <p class="hero-metric-label">Primary Output</p>
+            <p class="hero-metric-value">샘플수 초안</p>
+            <p class="hero-metric-note">통계 검토 전에 팀 내부 합의를 위한 기준값을 먼저 만듭니다.</p>
+          </article>
+          <article class="hero-metric">
+            <p class="hero-metric-label">Coverage</p>
+            <p class="hero-metric-value">3개 핵심 계산</p>
+            <p class="hero-metric-note">비율 추정, 군간 비교, 평균 비교를 하나의 흐름으로 묶었습니다.</p>
+          </article>
+        </div>
       </div>
       <div class="hero-card">
         <p class="card-label">현재 제공 계산</p>
@@ -30,6 +59,16 @@
           <li>두 평균 비교</li>
         </ul>
         <p class="server-status" data-server-status>서버 연결 확인 중...</p>
+        <div class="hero-note-grid">
+          <div class="hero-note">
+            <p class="hero-note-label">Workflow</p>
+            <p class="hero-note-value">Scoping to review draft</p>
+          </div>
+          <div class="hero-note">
+            <p class="hero-note-label">Best For</p>
+            <p class="hero-note-value">사전 미팅용 빠른 근거 정리</p>
+          </div>
+        </div>
         <p class="card-note">
           계산 결과는 설계 검토용 초안입니다. 실제 인허가 제출 전에는 통계 담당자 검토가 필요합니다.
         </p>
@@ -42,6 +81,24 @@
           <p class="section-kicker">Calculator</p>
           <h2>최소 샘플수 계산</h2>
           <p>시험 목적에 맞는 계산 유형을 선택하고 가정을 입력하세요.</p>
+        </div>
+
+        <div class="tool-strip">
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Operating Model</p>
+            <p class="tool-strip-value">표준 가정 기반 빠른 산출</p>
+            <p class="tool-strip-note">복잡한 설계 전 검토에 맞춰 가장 자주 쓰는 계산만 남겼습니다.</p>
+          </article>
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Deliverable</p>
+            <p class="tool-strip-value">팀 의사결정용 기준값</p>
+            <p class="tool-strip-note">회의 자료, 계획서 초안, 파트너 협의 전에 바로 활용할 수 있습니다.</p>
+          </article>
+          <article class="tool-strip-card">
+            <p class="tool-strip-label">Review Lens</p>
+            <p class="tool-strip-value">규제 문서 전 단계</p>
+            <p class="tool-strip-note">최종 제출 전에는 SAP 또는 통계 전문가 검토로 이어지는 흐름을 전제합니다.</p>
+          </article>
         </div>
 
         <div class="tabs" role="tablist" aria-label="샘플수 계산 유형">
