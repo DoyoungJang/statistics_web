@@ -17,6 +17,10 @@ ALLOWED_STATIC_FILES = {
     "/index.html": "index.html",
     "/ai-performance": "ai-performance.html",
     "/ai-performance.html": "ai-performance.html",
+    "/protocol-planning": "protocol-planning.html",
+    "/protocol-planning.html": "protocol-planning.html",
+    "/protocol-checklist": "protocol-checklist.html",
+    "/protocol-checklist.html": "protocol-checklist.html",
     "/styles.css": "styles.css",
     "/app.js": "app.js",
 }

@@ -8,22 +8,79 @@
 </head>
 <body class="page page-ai">
   <div class="page-shell">
+    <nav class="page-nav" aria-label="페이지 이동">
+      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
+      <a class="page-nav-link active" href="/ai-performance.html">AI 성능평가 샘플수</a>
+      <a class="page-nav-link" href="/protocol-planning">Protocol Planning</a>
+    </nav>
+
     <div class="workspace-bar">
       <div>
         <p class="workspace-kicker">Strategy Analytics Suite</p>
         <p class="workspace-title">AI Performance Planning Workspace</p>
       </div>
-      <div class="workspace-meta">
-        <span class="workspace-chip is-accent">Regulatory AI</span>
-        <span class="workspace-chip">Benchmark Design</span>
-        <span class="workspace-chip is-muted">Internal Pilot</span>
+      <div class="workspace-meta" aria-label="워크스페이스 기능">
+        <button class="workspace-chip is-accent active" type="button" data-workspace-mode="executive" aria-pressed="true">
+          Executive Tooling
+        </button>
+        <button class="workspace-chip" type="button" data-workspace-mode="protocol" aria-pressed="false">
+          Protocol Planning
+        </button>
+        <button class="workspace-chip is-muted" type="button" data-workspace-mode="pilot" aria-pressed="false">
+          Internal Pilot
+        </button>
       </div>
     </div>
 
-    <nav class="page-nav" aria-label="페이지 이동">
-      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
-      <a class="page-nav-link active" href="/ai-performance.html">AI 성능평가 샘플수</a>
-    </nav>
+    <section class="workspace-tools" aria-label="워크스페이스 도구">
+      <article class="workspace-tool-panel active" data-workspace-panel="executive">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Executive Tooling</p>
+          <h2>현재 성능설계 상태를 빠르게 브리핑</h2>
+          <p>활성 metric과 입력값, 결과 요약을 복사하고 현재 계산기나 핵심 가정 블록으로 바로 이동할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="copy-summary">현재 요약 복사</button>
+          <button class="secondary-button" type="button" data-workspace-action="focus-calculator">활성 계산기로 이동</button>
+          <button class="secondary-button" type="button" data-workspace-action="open-assumptions">핵심 가정 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          benchmark 기반 설계 초안을 공유하거나 리뷰할 때 필요한 핵심 액션을 모아두었습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="protocol">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Protocol Planning</p>
+          <h2>활성 metric에 맞춘 설계 프리셋</h2>
+          <p>현재 선택한 AI metric 계산기에 baseline 또는 high-assurance 기본값을 적용하고 관련 공식을 바로 확인할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="apply-baseline-plan">Baseline 기본값</button>
+          <button class="secondary-button" type="button" data-workspace-action="apply-high-assurance">High-assurance 기본값</button>
+          <button class="secondary-button" type="button" data-workspace-action="open-formula">공식 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          alpha, power, dropout 같은 설계 변수부터 먼저 정리하고 싶은 흐름에 맞췄습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="pilot">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Internal Pilot</p>
+          <h2>데모 입력과 서버 상태 점검</h2>
+          <p>현재 metric의 예시값을 즉시 불러오고, 결과를 비우거나 서버 헬스 체크를 다시 수행할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="load-demo">예시값 불러오기</button>
+          <button class="secondary-button" type="button" data-workspace-action="clear-results">결과 초기화</button>
+          <button class="secondary-button" type="button" data-workspace-action="refresh-health">서버 상태 다시 확인</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          내부 데모나 metric 비교 전에 계산 상태를 빠르게 리셋하고 확인할 수 있습니다.
+        </p>
+      </article>
+    </section>
 
     <header class="hero">
       <div class="hero-copy">
@@ -173,7 +230,24 @@
                 <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
               </label>
 
+              <label>
+                Design effect / cluster inflation
+                <input name="designEffect" type="number" min="1" step="0.05" value="1">
+              </label>
+              <label>
+                Protected subgroups
+                <input name="subgroupCount" type="number" min="1" step="1" value="1">
+              </label>
+              <label>
+                Minimum cases per subgroup
+                <input name="minCasesPerSubgroup" type="number" min="0" step="1" value="0">
+              </label>
+              <label>
+                Reference standard failure rate
+                <input name="referenceReviewFailureRate" type="number" min="0" max="0.9" step="0.01" value="0">
+              </label>
               <button class="primary-button" type="submit">계산하기</button>
+
             </form>
 
             <p class="dynamic-help" data-dynamic-help></p>
@@ -256,7 +330,22 @@
                 예상 탈락률
                 <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
               </label>
-
+              <label>
+                Design effect / cluster inflation
+                <input name="designEffect" type="number" min="1" step="0.05" value="1">
+              </label>
+              <label>
+                Protected subgroups
+                <input name="subgroupCount" type="number" min="1" step="1" value="1">
+              </label>
+              <label>
+                Minimum cases per subgroup
+                <input name="minCasesPerSubgroup" type="number" min="0" step="1" value="0">
+              </label>
+              <label>
+                Reference standard failure rate
+                <input name="referenceReviewFailureRate" type="number" min="0" max="0.9" step="0.01" value="0">
+              </label>
               <button class="primary-button" type="submit">계산하기</button>
             </form>
 
@@ -350,7 +439,22 @@
                 예상 탈락률
                 <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
               </label>
-
+              <label>
+                Design effect / cluster inflation
+                <input name="designEffect" type="number" min="1" step="0.05" value="1">
+              </label>
+              <label>
+                Protected subgroups
+                <input name="subgroupCount" type="number" min="1" step="1" value="1">
+              </label>
+              <label>
+                Minimum cases per subgroup
+                <input name="minCasesPerSubgroup" type="number" min="0" step="1" value="0">
+              </label>
+              <label>
+                Reference standard failure rate
+                <input name="referenceReviewFailureRate" type="number" min="0" max="0.9" step="0.01" value="0">
+              </label>
               <button class="primary-button" type="submit">계산하기</button>
             </form>
 
@@ -436,7 +540,22 @@
                 예상 탈락률
                 <input name="dropout" type="number" min="0" max="0.9" step="0.01" value="0.1">
               </label>
-
+              <label>
+                Design effect / cluster inflation
+                <input name="designEffect" type="number" min="1" step="0.05" value="1">
+              </label>
+              <label>
+                Protected subgroups
+                <input name="subgroupCount" type="number" min="1" step="1" value="1">
+              </label>
+              <label>
+                Minimum cases per subgroup
+                <input name="minCasesPerSubgroup" type="number" min="0" step="1" value="0">
+              </label>
+              <label>
+                Reference standard failure rate
+                <input name="referenceReviewFailureRate" type="number" min="0" max="0.9" step="0.01" value="0">
+              </label>
               <button class="primary-button" type="submit">계산하기</button>
             </form>
 

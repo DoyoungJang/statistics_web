@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 초음파 임상시험 Protocol Planning</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page-protocol">
+  <div class="page-shell">
+    <nav class="page-nav" aria-label="페이지 이동">
+      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
+      <a class="page-nav-link" href="/ai-performance.html">AI 성능평가 샘플수</a>
+      <a class="page-nav-link active" href="/protocol-planning">Protocol Planning</a>
+    </nav>
+
+    <div class="workspace-bar">
+      <div>
+        <p class="workspace-kicker">Strategy Analytics Suite</p>
+        <p class="workspace-title">Ultrasound AI Protocol Planning Workspace</p>
+      </div>
+      <div class="workspace-meta" aria-label="워크스페이스 기능">
+        <button class="workspace-chip is-accent active" type="button" data-workspace-mode="executive" aria-pressed="true">
+          Executive Tooling
+        </button>
+        <button class="workspace-chip" type="button" data-workspace-mode="protocol" aria-pressed="false">
+          Protocol Planning
+        </button>
+        <button class="workspace-chip is-muted" type="button" data-workspace-mode="pilot" aria-pressed="false">
+          Internal Pilot
+        </button>
+      </div>
+    </div>
+
+    <section class="workspace-tools" aria-label="워크스페이스 도구">
+      <article class="workspace-tool-panel active" data-workspace-panel="executive">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Executive Tooling</p>
+          <h2>현재 프로토콜 초안을 빠르게 브리핑</h2>
+          <p>선택한 AI 기능의 프로토콜 초안을 복사하고, 입력 패널이나 운영 포인트 영역으로 바로 이동할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="copy-summary">현재 초안 복사</button>
+          <button class="secondary-button" type="button" data-workspace-action="focus-calculator">프로토콜 입력으로 이동</button>
+          <button class="secondary-button" type="button" data-workspace-action="open-assumptions">운영 포인트 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          capability별 protocol draft를 빠르게 복사하고 주요 운영 포인트를 검토할 수 있습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="protocol">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Protocol Planning</p>
+          <h2>현재 기능에 맞는 기본 설계 불러오기</h2>
+          <p>선택한 AI 기능의 기본 초안 값을 적용하거나 더 보수적인 설정으로 조정한 뒤 결과 초안을 다시 생성할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="apply-baseline-plan">기본 프로토콜 값</button>
+          <button class="secondary-button" type="button" data-workspace-action="apply-high-assurance">보수적 설정 적용</button>
+          <button class="secondary-button" type="button" data-workspace-action="open-formula">생성 초안 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          저장형과 실시간 기능을 구분해 comparator, endpoint, 운영 가정을 빠르게 조정할 수 있습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="pilot">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Internal Pilot</p>
+          <h2>예시값, 초기화, 상태 점검</h2>
+          <p>현재 기능의 기본 예시값을 다시 불러오고, 생성 초안을 비우거나 서버 상태를 다시 확인할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-workspace-action="load-demo">예시값 불러오기</button>
+          <button class="secondary-button" type="button" data-workspace-action="clear-results">초안 초기화</button>
+          <button class="secondary-button" type="button" data-workspace-action="refresh-health">서버 상태 다시 확인</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          내부 검토 전에 선택 capability, 입력값, 생성 결과를 빠르게 정리할 수 있습니다.
+        </p>
+      </article>
+    </section>
+
+    <section class="protocol-planning-view" data-protocol-view aria-label="AI 임상시험 프로토콜 플래닝">
+      <div class="protocol-hero">
+        <section class="protocol-hero-copy">
+          <p class="eyebrow">Ultrasound AI Clinical Trial Protocol Planning</p>
+          <h1>AI 기능 임상시험용<br>Protocol Planning</h1>
+          <p class="hero-text">
+            일반적인 clinical trial design 원칙을 따르되, 의료 초음파 워크플로우와 저장형 AI 기능, 실시간 AI 기능의 차이를 반영해
+            프로토콜 초안을 구성하는 전용 화면입니다.
+          </p>
+          <div class="hero-metrics">
+            <article class="hero-metric">
+              <p class="hero-metric-label">Scope</p>
+              <p class="hero-metric-value">Ultrasound Clinical Trial</p>
+              <p class="hero-metric-note">초음파 획득, 저장, 판독, 실시간 표시 흐름을 기준으로 설계합니다.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Design Method</p>
+              <p class="hero-metric-value">Standard Protocol Framework</p>
+              <p class="hero-metric-note">목적, 대상자, 워크플로우, comparator, endpoint, 운영 요소 순서로 정리합니다.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Capability Set</p>
+              <p class="hero-metric-value">8 AI Functions</p>
+              <p class="hero-metric-note">저장형 4종과 실시간 4종을 구분해 프로토콜 문구를 자동 구성합니다.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="protocol-hero-card">
+          <p class="card-label">Planning Logic</p>
+          <ul class="hero-list">
+            <li>저장형 AI: 검사자가 스캔 후 이미지를 저장하면 AI가 해당 저장본을 분석</li>
+            <li>실시간 AI: 스캔 중 AI가 즉시 동작해 화면에 결과를 오버레이</li>
+            <li>기능별로 endpoint, workflow, reference standard, safety 관점을 다르게 제시</li>
+          </ul>
+          <p class="server-status" data-server-status>서버 연결 확인 중...</p>
+          <div class="hero-note-grid">
+            <div class="hero-note">
+              <p class="hero-note-label">Stored AI</p>
+              <p class="hero-note-value">Classification, Detection, Segmentation, Measurement</p>
+            </div>
+            <div class="hero-note">
+              <p class="hero-note-label">Real-time AI</p>
+              <p class="hero-note-value">Realtime Detection, Classification, Segmentation, Measurement</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="protocol-layout">
+        <section class="protocol-planner-panel">
+          <div class="section-heading">
+            <p class="section-kicker">Protocol Builder</p>
+            <h2>기능별 프로토콜 초안 생성</h2>
+            <p>원하는 AI 기능을 선택하면 초음파 clinical trial protocol에 맞는 구조와 권장 문구를 아래에서 자동으로 정리합니다.</p>
+          </div>
+
+          <div class="protocol-capability-tabs" role="tablist" aria-label="AI 기능 선택">
+            <button class="protocol-capability-button active" type="button" data-protocol-capability="classification">Classification</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="detection">Detection</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="segmentation">Segmentation</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="measurement">Measurement</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="realtime-classification">실시간 Classification</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="realtime-detection">실시간 Detection</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="realtime-segmentation">실시간 Segmentation</button>
+            <button class="protocol-capability-button" type="button" data-protocol-capability="realtime-measurement">실시간 Measurement</button>
+          </div>
+
+          <div class="protocol-mode-banner" data-protocol-mode-banner></div>
+
+          <form class="protocol-form" data-protocol-form>
+            <label>
+              적응증 / Clinical indication
+              <input name="indication" type="text" value="갑상선 결절 평가 보조">
+            </label>
+            <label>
+              Intended use
+              <input name="intendedUse" type="text" value="초음파 검사 중 의심 소견을 보조적으로 제시">
+            </label>
+            <label>
+              대상 환자군 / Target population
+              <input name="population" type="text" value="진단 또는 추적 관찰이 필요한 성인 외래 환자">
+            </label>
+            <label>
+              Comparator
+              <select name="comparator">
+                <option value="expert-consensus" selected>전문가 합의 판독</option>
+                <option value="standard-of-care">표준 진료 판독</option>
+                <option value="reader-study">독립 reader study</option>
+              </select>
+            </label>
+            <label>
+              Primary hypothesis
+              <select name="hypothesis">
+                <option value="non-inferiority" selected>Non-inferiority</option>
+                <option value="superiority">Superiority</option>
+                <option value="agreement">Agreement / Concordance</option>
+              </select>
+            </label>
+            <label>
+              시험 기관 수 / Sites
+              <input name="sites" type="number" min="1" step="1" value="5">
+            </label>
+            <label>
+              전문가 판독자 수 / Expert readers
+              <input name="readers" type="number" min="1" step="1" value="3">
+            </label>
+            <label>
+              Primary endpoint focus
+              <input name="primaryEndpoint" type="text" value="AUC, sensitivity, specificity">
+            </label>
+            <label>
+              Reference standard
+              <input name="referenceStandard" type="text" value="전문가 합의 판독과 병리 또는 추적 결과 기반 truth set">
+            </label>
+            <label>
+              Data collection plan
+              <select name="dataCollectionPlan">
+                <option value="prospective-consecutive" selected>Prospective consecutive enrollment</option>
+                <option value="retrospective-consecutive">Retrospective consecutive case set</option>
+                <option value="hybrid-rwd">Hybrid design with real-world data bridge</option>
+                <option value="stratified-enriched">Stratified or enriched sampling with prespecified quotas</option>
+              </select>
+            </label>
+            <label>
+              Validation dataset control
+              <select name="validationDatasetPlan">
+                <option value="external-site-sequestered" selected>Sequestered external-site validation set</option>
+                <option value="temporal-holdout">Temporal holdout validation set</option>
+                <option value="device-diverse-holdout">Device- and protocol-diverse holdout set</option>
+                <option value="rwd-bridge">Fit-for-purpose RWD bridge dataset</option>
+              </select>
+            </label>
+            <label>
+              Analysis population
+              <select name="analysisPopulation">
+                <option value="intention-to-diagnose" selected>Intention-to-diagnose</option>
+                <option value="both-primary-itt">ITT primary with per-protocol sensitivity analysis</option>
+                <option value="per-protocol">Per-protocol primary analysis</option>
+              </select>
+            </label>
+            <label>
+              Key subgroup plan
+              <input name="subgroupFocus" type="text" value="Sex, age, disease severity, site, device, acquisition preset">
+            </label>
+            <label>
+              Prespecified acceptance criteria
+              <input name="acceptanceCriteria" type="text" value="Primary endpoint with 95% CI meets the prespecified threshold and no clinically unacceptable subgroup degradation">
+            </label>
+            <label>
+              Human factors / usability
+              <select name="humanFactorsPlan">
+                <option value="usability-evaluation" selected>Usability evaluation</option>
+                <option value="human-factors-validation">Human factors validation</option>
+                <option value="workflow-observation">Workflow observation only</option>
+              </select>
+            </label>
+            <label>
+              Performance monitoring
+              <select name="monitoringPlan">
+                <option value="quarterly-review" selected>Quarterly performance review</option>
+                <option value="site-drift-dashboard">Site and drift dashboard monitoring</option>
+                <option value="update-triggered">Update-triggered surveillance only</option>
+                <option value="no-routine">No routine monitoring beyond complaints</option>
+              </select>
+            </label>
+            <label>
+              Change control strategy
+              <select name="changeControlPlan">
+                <option value="locked-model" selected>Locked model with new submission for major changes</option>
+                <option value="pccp-performance">PCCP for performance tuning</option>
+                <option value="pccp-input-compatibility">PCCP for new device or input compatibility</option>
+                <option value="pccp-population-expansion">PCCP for bounded population expansion</option>
+              </select>
+            </label>
+            <label data-protocol-field="savedWorkflow">
+              저장형 분석 트리거
+              <select name="savedWorkflow">
+                <option value="representative-image" selected>대표 정지영상 또는 cine loop 저장 후 AI 분석</option>
+                <option value="post-exam-batch">검사 종료 후 저장본 일괄 분석</option>
+                <option value="reader-selected">사용자가 선택한 저장 이미지에만 AI 실행</option>
+              </select>
+            </label>
+            <label data-protocol-field="overlayMode" hidden>
+              실시간 표시 방식
+              <select name="overlayMode">
+                <option value="bounding-box" selected>Bounding box / marker overlay</option>
+                <option value="heatmap">Heatmap / highlight overlay</option>
+                <option value="measurement-guide">Measurement guide overlay</option>
+              </select>
+            </label>
+            <label data-protocol-field="latencyTarget" hidden>
+              실시간 반응 기준 / Latency target (ms)
+              <input name="latencyTarget" type="number" min="10" step="10" value="200">
+            </label>
+
+            <div class="protocol-action-row">
+              <button class="primary-button" type="button" data-protocol-generate>프로토콜 초안 생성</button>
+              <button class="secondary-button" type="button" data-protocol-copy>초안 복사</button>
+              <button class="secondary-button" type="button" data-protocol-open-checklist>체크리스트 페이지 열기</button>
+            </div>
+          </form>
+
+          <p class="dynamic-help protocol-help" data-protocol-help></p>
+        </section>
+
+        <aside class="protocol-side-panel">
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Selected Capability</p>
+            <h2 data-protocol-capability-title>Classification</h2>
+            <p data-protocol-capability-description>저장된 초음파 이미지 또는 cine loop를 기준으로 질환 또는 소견 여부를 분류하는 임상시험 설계를 제안합니다.</p>
+            <div class="summary-grid">
+              <div class="summary-card">
+                <p class="summary-label">Workflow</p>
+                <p class="summary-value" data-protocol-summary-workflow>Saved image review</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Endpoint</p>
+                <p class="summary-value" data-protocol-summary-endpoint>AUC / sensitivity / specificity</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Design</p>
+                <p class="summary-value" data-protocol-summary-design>Prospective multicenter study</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Ultrasound Logic</p>
+            <h2>저장형과 실시간의 차이</h2>
+            <ul class="info-list" data-protocol-timing-notes>
+              <li>저장형 기능은 사용자가 이미지를 저장한 이후 해당 저장본에 대해 AI 결과를 생성합니다.</li>
+              <li>실시간 기능은 스캔 중 연속 프레임에서 AI가 즉시 동작하고 결과를 화면에 표시합니다.</li>
+              <li>실시간 시험은 latency, 사용자 행동 변화, overlay 안전성까지 함께 검토해야 합니다.</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      <section class="protocol-output-card" data-protocol-output></section>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

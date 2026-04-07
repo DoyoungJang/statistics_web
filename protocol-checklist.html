@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protocol Planning Study Checklist</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page-protocol-checklist">
+  <div class="page-shell">
+    <nav class="page-nav" aria-label="페이지 이동">
+      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
+      <a class="page-nav-link" href="/ai-performance.html">AI 성능평가 샘플수</a>
+      <a class="page-nav-link active" href="/protocol-planning">Protocol Planning</a>
+    </nav>
+
+    <div class="workspace-bar">
+      <div>
+        <p class="workspace-kicker">Protocol Execution Companion</p>
+        <p class="workspace-title">Study Execution Checklist Workspace</p>
+      </div>
+      <div class="workspace-meta">
+        <a class="workspace-chip is-accent" href="/protocol-planning">Back To Protocol Planning</a>
+        <button class="workspace-chip" type="button" data-checklist-copy>Checklist Copy</button>
+        <button class="workspace-chip is-muted" type="button" data-checklist-reset>Progress Reset</button>
+      </div>
+    </div>
+
+    <section class="protocol-checklist-view" data-protocol-checklist-view aria-label="Protocol study checklist">
+      <div class="protocol-hero">
+        <section class="protocol-hero-copy">
+          <p class="eyebrow">Protocol Planning Follow-Through</p>
+          <h1 data-checklist-title>Study Execution Checklist</h1>
+          <p class="hero-text" data-checklist-summary>
+            Generate a protocol in Protocol Planning first, then open this page to turn that draft into a step-by-step execution checklist.
+          </p>
+          <div class="hero-metrics">
+            <article class="hero-metric">
+              <p class="hero-metric-label">Capability</p>
+              <p class="hero-metric-value" data-checklist-capability>Not loaded</p>
+              <p class="hero-metric-note">The checklist inherits the active AI function from the generated protocol draft.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Workflow</p>
+              <p class="hero-metric-value" data-checklist-workflow>Awaiting protocol</p>
+              <p class="hero-metric-note">Stored-image and real-time workflows expose different operational checks.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Progress</p>
+              <p class="hero-metric-value" data-checklist-progress-count>0 / 0</p>
+              <p class="hero-metric-note">Progress is saved locally so the team can resume checklist tracking later.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="protocol-hero-card">
+          <p class="card-label">Execution Snapshot</p>
+          <ul class="hero-list" data-checklist-tags>
+            <li>Protocol package not loaded yet.</li>
+            <li>Return to Protocol Planning, generate a draft, then reopen this checklist page.</li>
+          </ul>
+          <p class="server-status" data-checklist-generated-at>Generated package not available.</p>
+          <div class="hero-note-grid">
+            <div class="hero-note">
+              <p class="hero-note-label">Primary Endpoint</p>
+              <p class="hero-note-value" data-checklist-endpoint>Not loaded</p>
+            </div>
+            <div class="hero-note">
+              <p class="hero-note-label">Sites / Readers</p>
+              <p class="hero-note-value" data-checklist-sites>0 sites</p>
+              <p class="hero-note-value" data-checklist-readers>0 readers</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="protocol-layout">
+        <section class="protocol-planner-panel checklist-main-panel">
+          <div class="section-heading">
+            <p class="section-kicker">Operational Checklist</p>
+            <h2>Run the study against the draft protocol</h2>
+            <p>Use this page as an execution companion for site start-up, enrollment, acquisition, review, endpoint package assembly, and close-out.</p>
+          </div>
+
+          <section class="checklist-progress-card">
+            <div>
+              <p class="section-kicker">Completion Status</p>
+              <h3 data-checklist-progress-text>0% complete</h3>
+            </div>
+            <div class="checklist-progress-track" aria-hidden="true">
+              <span class="checklist-progress-bar" data-checklist-progress-bar></span>
+            </div>
+          </section>
+
+          <div class="checklist-sections" data-checklist-sections>
+            <section class="protocol-placeholder checklist-empty-state">
+              <p class="protocol-placeholder-title">Protocol package required</p>
+              <p class="result-meta">Go to Protocol Planning, generate the draft, then use "체크리스트 페이지 열기" to load the study execution checklist.</p>
+            </section>
+          </div>
+        </section>
+
+        <aside class="protocol-side-panel">
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Execution Notes</p>
+            <h2>What this page tracks</h2>
+            <ul class="info-list">
+              <li>Study start-up and site-readiness checks aligned with the generated protocol draft</li>
+              <li>Workflow-specific steps for stored-image AI versus real-time on-screen AI behavior</li>
+              <li>Checkpoint completion that can be copied into meeting notes or operational updates</li>
+            </ul>
+          </section>
+
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Protocol Flow</p>
+            <h2>Study flowchart</h2>
+            <div data-checklist-flowchart>
+              <div class="protocol-placeholder">
+                <p class="protocol-placeholder-title">Flowchart will appear here</p>
+                <p class="result-meta">Once a protocol package is loaded, the protocol order will be rendered as a visual flow diagram.</p>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

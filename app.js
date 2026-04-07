@@ -3,6 +3,45 @@ const tabPanels = document.querySelectorAll(".tab-panel");
 const forms = document.querySelectorAll(".calc-form");
 const serverStatus = document.querySelector("[data-server-status]");
 const metricAwareForms = document.querySelectorAll(".metric-aware-form");
+const workspaceModeButtons = document.querySelectorAll("[data-workspace-mode]");
+const workspacePanels = document.querySelectorAll("[data-workspace-panel]");
+const workspaceActionButtons = document.querySelectorAll("[data-workspace-action]");
+const resultContainers = document.querySelectorAll("[data-result]");
+const protocolPlanningView = document.querySelector("[data-protocol-view]");
+const protocolCapabilityButtons = document.querySelectorAll("[data-protocol-capability]");
+const protocolForm = document.querySelector("[data-protocol-form]");
+const protocolGenerateButton = document.querySelector("[data-protocol-generate]");
+const protocolCopyButton = document.querySelector("[data-protocol-copy]");
+const protocolOpenChecklistButton = document.querySelector("[data-protocol-open-checklist]");
+const protocolModeBanner = document.querySelector("[data-protocol-mode-banner]");
+const protocolHelp = document.querySelector("[data-protocol-help]");
+const protocolOutput = document.querySelector("[data-protocol-output]");
+const protocolCapabilityTitle = document.querySelector("[data-protocol-capability-title]");
+const protocolCapabilityDescription = document.querySelector("[data-protocol-capability-description]");
+const protocolSummaryWorkflow = document.querySelector("[data-protocol-summary-workflow]");
+const protocolSummaryEndpoint = document.querySelector("[data-protocol-summary-endpoint]");
+const protocolSummaryDesign = document.querySelector("[data-protocol-summary-design]");
+const protocolTimingNotes = document.querySelector("[data-protocol-timing-notes]");
+const protocolDynamicFields = document.querySelectorAll("[data-protocol-field]");
+const protocolChecklistView = document.querySelector("[data-protocol-checklist-view]");
+const checklistTitle = document.querySelector("[data-checklist-title]");
+const checklistSummary = document.querySelector("[data-checklist-summary]");
+const checklistTags = document.querySelector("[data-checklist-tags]");
+const checklistGeneratedAt = document.querySelector("[data-checklist-generated-at]");
+const checklistCapability = document.querySelector("[data-checklist-capability]");
+const checklistWorkflow = document.querySelector("[data-checklist-workflow]");
+const checklistEndpoint = document.querySelector("[data-checklist-endpoint]");
+const checklistSites = document.querySelector("[data-checklist-sites]");
+const checklistReaders = document.querySelector("[data-checklist-readers]");
+const checklistProgressCount = document.querySelector("[data-checklist-progress-count]");
+const checklistProgressText = document.querySelector("[data-checklist-progress-text]");
+const checklistProgressBar = document.querySelector("[data-checklist-progress-bar]");
+const checklistSections = document.querySelector("[data-checklist-sections]");
+const checklistFlowchart = document.querySelector("[data-checklist-flowchart]");
+const checklistCopyButtons = document.querySelectorAll("[data-checklist-copy]");
+const checklistResetButtons = document.querySelectorAll("[data-checklist-reset]");
+const protocolPackageStorageKey = "statistics-web:protocol-package";
+const checklistProgressStoragePrefix = "statistics-web:checklist-progress:";
 
 const metricConfigs = {
   classification: {
@@ -759,7 +798,579 @@ const aiFieldTooltipBuilders = {
     "이상이 있는 영상 1건에 병변이 평균 몇 개쯤 있는지 적는 값입니다.",
   dropout: () =>
     "중간 탈락, 라벨 문제, 분석 제외 등을 미리 예상한 비율입니다. 실제 모집 인원을 더 크게 잡을 때 사용합니다.",
+  designEffect: () =>
+    "Reader, site, frame, or repeated-measure clustering이 있으면 필요한 전체 케이스 수를 키우는 보정계수입니다.",
+  subgroupCount: () =>
+    "성능을 따로 확인하고 싶은 보호 subgroup 또는 핵심 임상 subgroup 개수입니다.",
+  minCasesPerSubgroup: () =>
+    "각 subgroup 안에서 최소 확보하고 싶은 analyzable case 수입니다. 0이면 subgroup floor를 적용하지 않습니다.",
+  referenceReviewFailureRate: () =>
+    "Reference standard가 missing, equivocal, adjudication failure, quality exclusion으로 빠질 것으로 예상되는 비율입니다.",
 };
+
+const basicDemoValues = {
+  "single-proportion": {
+    proportion: 0.8,
+    margin: 0.1,
+    confidence: 0.95,
+    dropout: 0.1,
+  },
+  "two-proportion": {
+    p1: 0.7,
+    p2: 0.85,
+    alpha: 0.05,
+    power: 0.8,
+    dropout: 0.1,
+  },
+  "two-mean": {
+    sigma: 12,
+    delta: 8,
+    alpha: 0.05,
+    power: 0.8,
+    dropout: 0.1,
+  },
+};
+
+const workspacePlanPresets = {
+  baseline: {
+    "single-proportion": {
+      confidence: 0.95,
+      dropout: 0.1,
+    },
+    "two-proportion": {
+      alpha: 0.05,
+      power: 0.8,
+      dropout: 0.1,
+    },
+    "two-mean": {
+      alpha: 0.05,
+      power: 0.8,
+      dropout: 0.1,
+    },
+    metricAware: {
+      alpha: 0.025,
+      power: 0.8,
+      dropout: 0.1,
+      designEffect: 1,
+      subgroupCount: 1,
+      minCasesPerSubgroup: 0,
+      referenceReviewFailureRate: 0,
+    },
+  },
+  highAssurance: {
+    "single-proportion": {
+      confidence: 0.99,
+      dropout: 0.15,
+    },
+    "two-proportion": {
+      alpha: 0.01,
+      power: 0.9,
+      dropout: 0.15,
+    },
+    "two-mean": {
+      alpha: 0.01,
+      power: 0.9,
+      dropout: 0.15,
+    },
+    metricAware: {
+      alpha: 0.01,
+      power: 0.9,
+      dropout: 0.15,
+      designEffect: 1.1,
+      subgroupCount: 3,
+      minCasesPerSubgroup: 30,
+      referenceReviewFailureRate: 0.05,
+    },
+  },
+};
+
+const protocolCommonDefaults = {
+  dataCollectionPlan: "prospective-consecutive",
+  validationDatasetPlan: "external-site-sequestered",
+  analysisPopulation: "intention-to-diagnose",
+  subgroupFocus: "Sex, age, disease severity, site, device, acquisition preset",
+  acceptanceCriteria:
+    "Primary endpoint with 95% CI meets the prespecified threshold and no clinically unacceptable subgroup degradation",
+  humanFactorsPlan: "usability-evaluation",
+  monitoringPlan: "quarterly-review",
+  changeControlPlan: "locked-model",
+};
+
+const protocolWorkflowDefaults = {
+  stored: {
+    humanFactorsPlan: "usability-evaluation",
+    monitoringPlan: "quarterly-review",
+  },
+  realtime: {
+    humanFactorsPlan: "human-factors-validation",
+    monitoringPlan: "site-drift-dashboard",
+  },
+};
+
+const protocolCapabilityConfigs = {
+  classification: {
+    label: "Classification",
+    workflowType: "stored",
+    description:
+      "저장된 초음파 이미지 또는 cine loop를 기준으로 질환 여부, 위험군, view quality 등을 분류하는 임상시험 설계를 제안합니다.",
+    workflowSummary: "Saved image review",
+    endpointSummary: "AUC / sensitivity / specificity",
+    designSummary: "Prospective multicenter diagnostic performance study",
+    banner:
+      "저장형 classification 기능입니다. 검사자가 스캔 후 대표 이미지 또는 cine loop를 저장하면 AI가 저장본을 기반으로 분류 결과를 생성하는 구조를 전제로 합니다.",
+    help:
+      "일반적인 clinical trial design 흐름에 따라 intended use, target population, comparator, reference standard, primary endpoint를 먼저 고정한 뒤 reader blinding과 저장 규칙을 정리하세요.",
+    defaults: {
+      indication: "갑상선 결절 악성 위험 분류 보조",
+      intendedUse: "저장된 대표 초음파 영상을 기반으로 결절 위험도를 분류하도록 보조",
+      population: "갑상선 결절 평가가 필요한 성인 외래 환자",
+      comparator: "expert-consensus",
+      hypothesis: "non-inferiority",
+      sites: 5,
+      readers: 3,
+      primaryEndpoint: "환자 또는 영상 단위 AUC, sensitivity, specificity",
+      referenceStandard: "전문가 합의 판독과 병리 또는 추적 결과 기반 truth set",
+      savedWorkflow: "representative-image",
+      overlayMode: "bounding-box",
+      latencyTarget: 200,
+    },
+    timingNotes: [
+      "스캔 후 검사자가 임상적으로 대표성이 있는 정지영상 또는 cine loop를 저장한 뒤 AI가 해당 저장본을 분류합니다.",
+      "저장 시점과 저장 기준을 프로토콜에 명확히 정의해야 selection bias를 줄일 수 있습니다.",
+      "분류 결과는 환자 단위, 병변 단위, 저장 이미지 단위 중 어떤 단위를 primary analysis로 둘지 사전에 고정해야 합니다.",
+    ],
+    workflowBullets: [
+      "초음파 검사자는 표준 진료 흐름에 따라 스캔을 완료하고 사전 정의된 규칙에 따라 대표 저장본을 남깁니다.",
+      "AI는 저장된 이미지 또는 clip에 대해서만 실행되며 live scanning 단계에는 영향을 주지 않습니다.",
+      "저장본에 대한 AI 분류 결과는 blinded reader 결과 및 reference standard와 비교합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 AUC, sensitivity, specificity, PPV/NPV 중 하나 또는 조합으로 정의할 수 있습니다.",
+      "Secondary endpoint로 subgroup 성능, view quality별 성능, operator 경험도별 성능을 둘 수 있습니다.",
+      "환자 단위 endpoint와 저장 이미지 단위 endpoint가 다를 경우 hierarchy를 명시합니다.",
+    ],
+    ultrasoundBullets: [
+      "프로브 종류, 제조사, preset, cine length, 저장 규칙을 시험기관 간 표준화해야 합니다.",
+      "갑상선, 유방, 복부 등 적응증별로 대표 이미지 선정 규칙과 해부학적 landmark를 정의해야 합니다.",
+      "병변이 여러 개인 경우 patient-level adjudication rule을 미리 정합니다.",
+    ],
+    safetyBullets: [
+      "저장형 기능은 live scanning workflow를 직접 바꾸지 않지만, 저장 선택 편향과 reviewer expectation bias를 관리해야 합니다.",
+      "AI 출력이 진료 의사결정에 직접 사용된다면 결과 열람 시점과 확인 책임자를 문서화해야 합니다.",
+      "분류 불확실 또는 low-confidence case 처리 원칙을 정해야 합니다.",
+    ],
+    statBullets: [
+      "주분석은 전향적 다기관 진단 성능 시험 구조를 권장합니다.",
+      "기관 간 성능 이질성을 보기 위한 site-stratified analysis를 계획하는 것이 바람직합니다.",
+      "샘플수는 별도의 performance planning 또는 diagnostic accuracy framework와 연결해 산정합니다.",
+    ],
+  },
+  detection: {
+    label: "Detection",
+    workflowType: "stored",
+    description:
+      "저장된 초음파 이미지 또는 cine loop에서 병변이나 해부학 구조의 위치를 탐지하는 AI 기능을 위한 프로토콜 초안을 구성합니다.",
+    workflowSummary: "Saved lesion detection review",
+    endpointSummary: "Sensitivity / FP image / localization accuracy",
+    designSummary: "Prospective multicenter detection performance study",
+    banner:
+      "저장형 detection 기능입니다. 사용자가 스캔 후 저장한 영상에서 AI가 병변 위치를 탐지하며, 판독 정확도와 false positive burden을 함께 평가하도록 설계합니다.",
+    help:
+      "Detection trial에서는 patient-level 성능뿐 아니라 lesion-level endpoint, false positives, localization rule을 함께 정의해야 합니다.",
+    defaults: {
+      indication: "유방 병변 탐지 보조",
+      intendedUse: "저장된 초음파 영상에서 의심 병변 위치를 탐지해 판독을 보조",
+      population: "유방 병변 평가가 필요한 성인 여성 환자",
+      comparator: "expert-consensus",
+      hypothesis: "non-inferiority",
+      sites: 6,
+      readers: 3,
+      primaryEndpoint: "Lesion-level sensitivity와 FP per image",
+      referenceStandard: "전문가 annotation 합의와 추적 또는 병리 결과",
+      savedWorkflow: "representative-image",
+      overlayMode: "bounding-box",
+      latencyTarget: 200,
+    },
+    timingNotes: [
+      "저장형 detection은 사용자가 저장한 정지영상 또는 cine loop에 대해서만 AI가 위치 정보를 생성합니다.",
+      "Lesion matching rule과 acceptable overlap 기준을 프로토콜에 명확히 넣어야 합니다.",
+      "병변 수가 환자마다 다를 수 있어 patient-level과 lesion-level 분석 체계를 함께 계획해야 합니다.",
+    ],
+    workflowBullets: [
+      "검사자는 표준 진료대로 스캔을 수행하고 의심 병변이 포함된 저장본을 남깁니다.",
+      "AI는 저장된 frame 또는 clip에서 detection marker를 생성하며 탐지 위치와 confidence를 기록합니다.",
+      "독립 전문가 panel이 lesion annotation과 matching adjudication을 수행합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 lesion-level sensitivity, localization accuracy, FP per image 조합을 권장합니다.",
+      "Secondary endpoint로 patient-level detection success, subgroup별 lesion size 성능을 둘 수 있습니다.",
+      "Matching threshold와 multiple detections 처리 규칙을 SAP에 반영해야 합니다.",
+    ],
+    ultrasoundBullets: [
+      "초음파 병변은 스캔 평면과 각도에 따라 모양이 크게 달라지므로 저장 규칙과 clip length를 표준화해야 합니다.",
+      "Calcification, shadowing, artifact가 detection에 미치는 영향을 별도 subgroup로 검토하는 것이 유용합니다.",
+      "병변 annotation은 최소 2인 이상 전문가 합의 기반으로 구성하는 것이 바람직합니다.",
+    ],
+    safetyBullets: [
+      "False positive가 많을 경우 불필요한 저장, 추가 판독, 불필요한 biopsy referral 가능성을 모니터링해야 합니다.",
+      "탐지 누락이 진료에 미치는 영향을 평가하기 위해 missed lesion review workflow를 두는 것이 좋습니다.",
+      "Detection overlay를 reader가 언제 확인하는지와 판독 순서를 사전 고정해야 합니다.",
+    ],
+    statBullets: [
+      "Lesion clustering과 환자 내 상관성을 고려한 분석 전략을 사전에 기술해야 합니다.",
+      "Lesion prevalence와 patient prevalence가 모두 중요하므로 두 수준의 모집 가정을 명시합니다.",
+      "False positive burden는 mean endpoint 또는 rate endpoint로 정의할 수 있습니다.",
+    ],
+  },
+  segmentation: {
+    label: "Segmentation",
+    workflowType: "stored",
+    description:
+      "저장된 초음파 영상에서 병변이나 구조의 경계를 분할하는 AI 기능을 위한 clinical trial protocol 초안을 생성합니다.",
+    workflowSummary: "Saved contour review",
+    endpointSummary: "DSC / IoU / contour agreement",
+    designSummary: "Prospective multicenter segmentation performance study",
+    banner:
+      "저장형 segmentation 기능입니다. 저장된 초음파 영상에 대해 AI가 contour를 생성하고, 전문가 segmentation과의 일치도를 기반으로 임상 성능을 평가합니다.",
+    help:
+      "Segmentation trial에서는 contour quality와 downstream clinical use를 함께 정의해야 하며, annotation protocol의 일관성이 매우 중요합니다.",
+    defaults: {
+      indication: "간 병변 경계 분할 보조",
+      intendedUse: "저장된 초음파 영상에서 병변 또는 구조 경계를 자동으로 분할해 판독과 후속 측정을 보조",
+      population: "간 병변 평가가 필요한 성인 환자",
+      comparator: "expert-consensus",
+      hypothesis: "non-inferiority",
+      sites: 5,
+      readers: 3,
+      primaryEndpoint: "DSC와 IoU 기반 contour agreement",
+      referenceStandard: "전문가 수동 segmentation 합의안",
+      savedWorkflow: "representative-image",
+      overlayMode: "heatmap",
+      latencyTarget: 200,
+    },
+    timingNotes: [
+      "저장형 segmentation은 저장된 이미지 또는 clip에서 contour를 생성하며 실시간 조작은 포함하지 않습니다.",
+      "어떤 frame을 segmentation 대상으로 삼는지와 contour adjudication rule을 사전에 정의해야 합니다.",
+      "측정 또는 면적 계산에 segmentation을 활용한다면 downstream endpoint를 secondary로 둘 수 있습니다.",
+    ],
+    workflowBullets: [
+      "초음파 검사 후 대표 저장본을 선택하고 AI가 해당 저장본에 contour를 생성합니다.",
+      "전문가 panel은 동일 저장본에 수동 contour를 작성해 reference mask를 생성합니다.",
+      "AI contour는 reader assist 전후 workflow로 사용할지, 독립 성능 평가로 둘지 프로토콜에서 구분합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 DSC, IoU, boundary distance와 같은 contour agreement metric을 권장합니다.",
+      "Secondary endpoint로 면적, volume, downstream measurement accuracy를 둘 수 있습니다.",
+      "복수 구조를 동시에 분할하는 경우 structure-wise hierarchy를 명시해야 합니다.",
+    ],
+    ultrasoundBullets: [
+      "초음파 경계는 speckle noise와 low contrast의 영향을 크게 받아 annotation variation이 크므로 교육된 annotator 기준이 필요합니다.",
+      "기관별 장비와 probe 차이에 따른 image texture shift를 고려한 stratification이 필요합니다.",
+      "Contour가 임상적으로 허용 가능한 오차 범위를 넘는 경우 failure definition을 정해야 합니다.",
+    ],
+    safetyBullets: [
+      "Segmentation overlay가 사용자의 측정 행동을 바꿀 수 있다면 사용 시점과 reviewer training을 문서화해야 합니다.",
+      "불완전 contour 또는 contour leakage case의 처리 규칙을 마련해야 합니다.",
+      "판독자가 AI contour를 수정할 수 있는지 여부를 시험 목적에 맞게 고정합니다.",
+    ],
+    statBullets: [
+      "케이스별 segmentation metric distribution과 multi-structure correlation을 고려해야 합니다.",
+      "기관 및 장비군별 sensitivity analysis를 계획하는 것이 바람직합니다.",
+      "Reader-assisted design이면 reader effect를 모델에 반영하는 방법을 정의해야 합니다.",
+    ],
+  },
+  measurement: {
+    label: "Measurement",
+    workflowType: "stored",
+    description:
+      "저장된 초음파 영상에서 길이, 면적, 각도, 생체계측값을 계산하는 AI measurement 기능의 임상시험 프로토콜을 작성합니다.",
+    workflowSummary: "Saved measurement review",
+    endpointSummary: "MAE / RMSE / within-tolerance accuracy",
+    designSummary: "Prospective multicenter measurement accuracy study",
+    banner:
+      "저장형 measurement 기능입니다. 사용자가 저장한 초음파 영상에 대해 AI가 측정값을 계산하고, 전문가 또는 reference measurement와의 일치도를 평가합니다.",
+    help:
+      "Measurement trial에서는 tolerance band, 반복 측정 규칙, reference measurement 생성 방식이 핵심입니다.",
+    defaults: {
+      indication: "태아 biometry 측정 보조",
+      intendedUse: "저장된 표준 평면 초음파 영상에서 길이와 직경을 자동 측정해 검사자를 보조",
+      population: "정기 산전 진료를 받는 임신부",
+      comparator: "expert-consensus",
+      hypothesis: "agreement",
+      sites: 6,
+      readers: 3,
+      primaryEndpoint: "MAE와 허용오차 내 accuracy",
+      referenceStandard: "전문가 반복 측정 평균 또는 adjudicated reference measurement",
+      savedWorkflow: "representative-image",
+      overlayMode: "measurement-guide",
+      latencyTarget: 200,
+    },
+    timingNotes: [
+      "저장형 measurement는 사용자가 표준 평면을 저장한 뒤 해당 저장본에서 AI가 자동 측정을 수행합니다.",
+      "대표 평면 선정 규칙이 measurement 성능에 직접 영향을 주므로 acquisition criteria를 상세히 써야 합니다.",
+      "반복 측정과 intra-reader variability를 고려한 reference generation 전략이 필요합니다.",
+    ],
+    workflowBullets: [
+      "검사자가 표준 평면을 획득하고 저장한 뒤 AI가 저장된 frame에서 측정값을 생성합니다.",
+      "Reference measurement는 독립 전문가 반복 측정 또는 adjudication process로 생성합니다.",
+      "AI value는 자동 measurement 그대로 비교할지, reviewer confirm 후 값을 비교할지 정의합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 MAE, RMSE, Bland-Altman agreement, 허용오차 내 accuracy를 권장합니다.",
+      "Secondary endpoint로 측정 시간 단축, 재측정 횟수 감소, operator variability 감소를 둘 수 있습니다.",
+      "Tolerance band는 clinical relevance와 guideline 기반으로 사전 정의해야 합니다.",
+    ],
+    ultrasoundBullets: [
+      "표준 평면 적합성, fetal position, shadowing, obesity 등 acquisition difficulty 요인을 기록해야 합니다.",
+      "태아 계측처럼 gestational age별 허용오차가 다를 경우 subgroup analysis가 필요합니다.",
+      "Measurement landmark 정의와 caliper placement rule을 annotator training에 포함해야 합니다.",
+    ],
+    safetyBullets: [
+      "부정확한 measurement가 추적 계획이나 치료 결정에 미치는 영향 범위를 risk section에 기술해야 합니다.",
+      "Outlier measurement에 대해 사용자 확인 절차와 재측정 rule을 명시해야 합니다.",
+      "자동 measurement 결과가 확정값으로 저장되는 시점을 운영적으로 정의해야 합니다.",
+    ],
+    statBullets: [
+      "측정 오차는 lower-is-better endpoint로 계획할 수 있으며 tolerance-based endpoint를 함께 둘 수 있습니다.",
+      "반복 측정이 있으면 mixed model 또는 repeated-measure framework를 고려합니다.",
+      "Reader 및 site variation을 반영한 sensitivity analysis를 계획하는 것이 좋습니다.",
+    ],
+  },
+  "realtime-classification": {
+    label: "실시간 Classification",
+    workflowType: "realtime",
+    description:
+      "스캔 중 연속 프레임에서 AI가 실시간으로 분류 결과를 표시하는 초음파 기능을 위한 프로토콜을 제안합니다.",
+    workflowSummary: "Live classification overlay",
+    endpointSummary: "Frame/patient classification + workflow impact",
+    designSummary: "Prospective real-time usability and performance study",
+    banner:
+      "실시간 classification 기능입니다. 사용자가 스캔 중일 때 AI가 즉시 view 또는 lesion classification을 수행하고 화면에 결과를 보여주는 구조를 평가합니다.",
+    help:
+      "실시간 시험은 정확도뿐 아니라 latency, operator behavior change, 화면 표시 안전성, freeze/capture rule을 함께 설계해야 합니다.",
+    defaults: {
+      indication: "표준 평면 분류 및 quality check 보조",
+      intendedUse: "스캔 중 현재 프레임이 목표 view 또는 위험군에 해당하는지 실시간으로 제시",
+      population: "정기 초음파 검사를 받는 외래 환자 또는 산전 환자",
+      comparator: "standard-of-care",
+      hypothesis: "non-inferiority",
+      sites: 5,
+      readers: 3,
+      primaryEndpoint: "실시간 classification accuracy와 workflow completion rate",
+      referenceStandard: "저장된 clip의 전문가 frame-level adjudication과 clinical reference",
+      savedWorkflow: "representative-image",
+      overlayMode: "heatmap",
+      latencyTarget: 150,
+    },
+    timingNotes: [
+      "실시간 기능은 live scan 동안 연속 프레임을 처리하고 결과를 즉시 화면에 표시합니다.",
+      "AI 표시가 operator의 probe movement와 frame selection에 영향을 줄 수 있으므로 행동 변화까지 관찰해야 합니다.",
+      "Latency target, frame drop logging, freeze event capture rule을 프로토콜에 넣는 것이 중요합니다.",
+    ],
+    workflowBullets: [
+      "사용자는 통상적인 초음파 스캔을 수행하며 AI는 live stream에서 실시간 classification 결과를 overlay합니다.",
+      "주요 의사결정 시점의 frame과 AI confidence를 자동 로그로 저장합니다.",
+      "Reference evaluation은 저장된 full clip 또는 key frame에 대해 독립 전문가가 수행합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 real-time classification accuracy, operator-level success rate, workflow completion time을 권장합니다.",
+      "Secondary endpoint로 frame-level latency, user trust, recapture rate, manual override rate를 둘 수 있습니다.",
+      "실시간 표시를 켠 상태와 끈 상태를 비교하는 crossover design도 고려 가능합니다.",
+    ],
+    ultrasoundBullets: [
+      "Probe motion, respiration, fetal movement처럼 frame stability를 떨어뜨리는 요소를 기록해야 합니다.",
+      "표준 평면 탐색 시간이 중요한 적응증에서는 time-to-target view를 핵심 운영 지표로 둘 수 있습니다.",
+      "실시간 view classification은 clip-level truth와 frame-level truth 간 차이를 설명해야 합니다.",
+    ],
+    safetyBullets: [
+      "오버레이가 중요 해부학 구조를 가리거나 과도한 신뢰를 유발하지 않는지 사용성 관점에서 검토해야 합니다.",
+      "Low-confidence 또는 unavailable 상태를 어떻게 표시할지 명확히 정의해야 합니다.",
+      "사용자 override와 AI off fallback workflow를 반드시 포함해야 합니다.",
+    ],
+    statBullets: [
+      "Frame-level correlation과 operator-level clustering을 고려한 분석 계획이 필요합니다.",
+      "실시간 기능은 performance endpoint와 usability endpoint를 함께 설계하는 것이 일반적입니다.",
+      "비교군이 존재하면 randomized crossover 또는 sequence-balanced design을 고려할 수 있습니다.",
+    ],
+  },
+  "realtime-detection": {
+    label: "실시간 Detection",
+    workflowType: "realtime",
+    description:
+      "초음파 스캔 중 실시간으로 병변 또는 구조 위치를 탐지해 화면에 표시하는 AI 기능에 맞는 임상시험 프로토콜 초안을 제공합니다.",
+    workflowSummary: "Live lesion detection overlay",
+    endpointSummary: "Real-time sensitivity / FP burden / latency",
+    designSummary: "Prospective real-time detection study",
+    banner:
+      "실시간 detection 기능입니다. live scan 중 AI가 병변이나 구조를 실시간으로 강조 표시하므로 정확도와 false positive burden, latency를 동시에 평가해야 합니다.",
+    help:
+      "실시간 detection은 탐지 정확도뿐 아니라 overlay가 scanning behavior와 lesion capture rate를 어떻게 바꾸는지까지 포함해 설계하는 것이 좋습니다.",
+    defaults: {
+      indication: "간 종괴 실시간 탐지 보조",
+      intendedUse: "스캔 중 의심 병변 위치를 실시간으로 표시해 검사자의 탐지 누락을 줄이도록 보조",
+      population: "간 병변 평가가 필요한 성인 환자",
+      comparator: "standard-of-care",
+      hypothesis: "non-inferiority",
+      sites: 6,
+      readers: 3,
+      primaryEndpoint: "Lesion-level sensitivity, FP burden, latency",
+      referenceStandard: "저장된 clip에 대한 전문가 lesion annotation과 추적/병리 결과",
+      savedWorkflow: "representative-image",
+      overlayMode: "bounding-box",
+      latencyTarget: 120,
+    },
+    timingNotes: [
+      "실시간 detection은 스캔 중 연속 프레임에서 병변 후보를 즉시 표시합니다.",
+      "Live false positive는 사용자의 탐촉자 움직임과 저장 판단에 직접 영향을 줄 수 있어 별도 모니터링이 필요합니다.",
+      "AI detection이 켜진 상태와 꺼진 상태의 lesion capture rate 차이를 시험 목적에 맞게 설계할 수 있습니다.",
+    ],
+    workflowBullets: [
+      "사용자는 일반적인 scanning protocol에 따라 영상을 획득하고 AI는 live stream에서 탐지 marker를 표시합니다.",
+      "AI alert가 발생한 frame과 사용자가 실제 저장한 frame을 함께 기록해 workflow impact를 평가합니다.",
+      "Reference truth는 독립 전문가 panel이 저장된 full clip과 임상 결과를 이용해 adjudication합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 lesion-level sensitivity와 FP per minute 또는 FP per clip을 조합하는 것이 일반적입니다.",
+      "Secondary endpoint로 lesion capture time, additional saved frame count, operator confidence를 둘 수 있습니다.",
+      "Latency와 alert persistence rule을 secondary operational endpoint로 명시해야 합니다.",
+    ],
+    ultrasoundBullets: [
+      "Real-time detection은 probe sweep speed와 insonation angle 영향을 크게 받으므로 acquisition variability 기록이 중요합니다.",
+      "병변 크기와 깊이, echogenicity에 따른 subgroup stratification을 계획하는 것이 좋습니다.",
+      "Clip-based truth와 instantaneous overlay truth 사이 차이를 해소하는 adjudication rule을 둬야 합니다.",
+    ],
+    safetyBullets: [
+      "과도한 false alert가 scanning distraction을 유발하는지 human factors 관점에서 확인해야 합니다.",
+      "No detection 상태가 지속될 때 fallback scanning rule을 명시해야 합니다.",
+      "오버레이가 깊은 구조나 acoustic shadow 영역을 가리지 않도록 UI safety requirement를 기술합니다.",
+    ],
+    statBullets: [
+      "Live stream 단위 자료는 frame clustering이 크므로 patient-level summary measure를 함께 설계하는 것이 유리합니다.",
+      "Operator learning effect가 생길 수 있어 초기 적응 구간을 정의할 수 있습니다.",
+      "성능 endpoint와 workflow endpoint를 분리한 hierarchical testing 전략도 고려 가능합니다.",
+    ],
+  },
+  "realtime-segmentation": {
+    label: "실시간 Segmentation",
+    workflowType: "realtime",
+    description:
+      "스캔 중 AI가 구조 또는 병변 경계를 실시간으로 표시하는 기능을 위한 초음파 clinical trial protocol을 구성합니다.",
+    workflowSummary: "Live contour overlay",
+    endpointSummary: "Real-time contour agreement / usability / latency",
+    designSummary: "Prospective real-time segmentation study",
+    banner:
+      "실시간 segmentation 기능입니다. AI contour가 live scan 중 표시되므로 contour accuracy뿐 아니라 overlay 안정성과 사용성까지 함께 다루는 프로토콜이 필요합니다.",
+    help:
+      "실시간 contour overlay가 measurement나 lesion localization을 보조하는 경우 downstream task를 secondary endpoint로 함께 두는 것이 좋습니다.",
+    defaults: {
+      indication: "실시간 신경 구조 경계 표시 보조",
+      intendedUse: "스캔 중 목표 구조의 경계를 실시간으로 표시해 위치 확인과 후속 절차를 보조",
+      population: "표적 구조 확인이 필요한 시술 또는 진단 환자",
+      comparator: "standard-of-care",
+      hypothesis: "non-inferiority",
+      sites: 4,
+      readers: 3,
+      primaryEndpoint: "실시간 contour agreement와 user task success",
+      referenceStandard: "저장된 clip의 전문가 frame-level contour adjudication",
+      savedWorkflow: "representative-image",
+      overlayMode: "heatmap",
+      latencyTarget: 120,
+    },
+    timingNotes: [
+      "실시간 segmentation은 연속 프레임마다 contour를 업데이트하며 화면에 즉시 표시합니다.",
+      "Contour jitter, tracking loss, frame lag 같은 real-time failure mode를 별도로 정의해야 합니다.",
+      "사용자가 contour를 보고 probe를 재조정할 수 있으므로 interaction effect를 고려해야 합니다.",
+    ],
+    workflowBullets: [
+      "AI는 live scan 동안 목표 구조 또는 병변의 contour를 overlay하고 사용자는 이를 참고해 스캔을 지속합니다.",
+      "Key frame과 contour quality log, latency log를 자동 수집합니다.",
+      "Reference contour는 저장된 representative clip을 기반으로 전문가 panel이 생성합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 frame- 또는 clip-level contour agreement, task success rate, latency를 권장합니다.",
+      "Secondary endpoint로 measurement completion time, repositioning 횟수, user confidence를 둘 수 있습니다.",
+      "Contour instability를 operational failure endpoint로 정의하는 것이 좋습니다.",
+    ],
+    ultrasoundBullets: [
+      "실시간 경계는 speckle noise와 motion artifact의 영향을 크게 받아 contour smoothing rule이 중요합니다.",
+      "시술 보조 목적이라면 needle/path visibility와 overlay interference를 함께 평가해야 합니다.",
+      "Anatomy-specific landmark와 acceptable contour deviation 범위를 명확히 써야 합니다.",
+    ],
+    safetyBullets: [
+      "Contour가 실제 구조를 과신하게 만들 수 있으므로 on/off control과 confidence communication을 포함해야 합니다.",
+      "Tracking loss 또는 unstable contour 발생 시 사용자에게 명확히 알려주는 fail-safe가 필요합니다.",
+      "실시간 overlay가 중요한 구조를 가리지 않도록 UI layering requirement를 문서화합니다.",
+    ],
+    statBullets: [
+      "Frame-level metric은 상관성이 매우 크므로 clip-level summary endpoint를 주분석으로 둘 수 있습니다.",
+      "실시간 contour quality와 task performance를 공동 primary 또는 key secondary endpoint로 설계할 수 있습니다.",
+      "Operator 숙련도와 anatomy subgroup을 반영한 탐색적 분석이 유용합니다.",
+    ],
+  },
+  "realtime-measurement": {
+    label: "실시간 Measurement",
+    workflowType: "realtime",
+    description:
+      "초음파 스캔 중 AI가 실시간으로 길이, 직경, 면적 등을 제안하거나 자동 계산하는 기능을 위한 clinical trial protocol을 작성합니다.",
+    workflowSummary: "Live measurement assistance",
+    endpointSummary: "Measurement error / completion time / latency",
+    designSummary: "Prospective real-time measurement study",
+    banner:
+      "실시간 measurement 기능입니다. scanning 중 AI가 즉시 caliper placement 또는 measurement guide를 제공하므로 정확도와 workflow efficiency를 동시에 설계해야 합니다.",
+    help:
+      "실시간 measurement는 measurement accuracy, time saving, repeat capture 감소, user override frequency를 함께 보는 것이 일반적입니다.",
+    defaults: {
+      indication: "실시간 fetal biometry 측정 보조",
+      intendedUse: "스캔 중 표준 평면에서 자동 caliper guide와 measurement 값을 실시간 제시",
+      population: "정기 산전 초음파를 받는 임신부",
+      comparator: "standard-of-care",
+      hypothesis: "agreement",
+      sites: 6,
+      readers: 3,
+      primaryEndpoint: "Measurement error와 completion time",
+      referenceStandard: "전문가 adjudicated measurement와 추적 임상 데이터",
+      savedWorkflow: "representative-image",
+      overlayMode: "measurement-guide",
+      latencyTarget: 100,
+    },
+    timingNotes: [
+      "실시간 measurement는 live scan 중 표준 평면 인지, caliper 위치 제안, measurement 계산이 연속적으로 동작합니다.",
+      "사용자가 AI guide를 그대로 수용하는지 수정하는지에 따라 결과가 달라지므로 interaction logging이 중요합니다.",
+      "Freeze 시점, value lock rule, final save rule을 명확히 정의해야 합니다.",
+    ],
+    workflowBullets: [
+      "사용자는 AI guide를 보며 표준 평면을 맞추고 AI는 caliper 또는 measurement overlay를 실시간 제공합니다.",
+      "사용자가 measurement를 승인하거나 수정한 이력, final saved value, latency log를 저장합니다.",
+      "Reference measurement는 독립 전문가 반복 측정 또는 adjudicated reference set으로 구성합니다.",
+    ],
+    endpointBullets: [
+      "Primary endpoint는 measurement error, 허용오차 내 accuracy, task completion time을 권장합니다.",
+      "Secondary endpoint로 재시도 횟수, manual adjustment frequency, user confidence를 둘 수 있습니다.",
+      "실시간 guide의 효율성을 보기 위해 AI on/off crossover design을 고려할 수 있습니다.",
+    ],
+    ultrasoundBullets: [
+      "Fetal biometry나 chamber size처럼 표준 평면 정의가 중요한 적응증에서는 plane adequacy rule을 반드시 포함해야 합니다.",
+      "Patient motion, fetal position, breathing artifact에 따른 measurement difficulty를 기록하는 것이 좋습니다.",
+      "Caliper placement 허용오차와 clinically acceptable deviation을 적응증별로 명시해야 합니다.",
+    ],
+    safetyBullets: [
+      "부정확한 실시간 measurement가 진료 판단에 미치는 영향을 risk analysis에 포함해야 합니다.",
+      "사용자 confirm 없이 값이 저장되지 않도록 human confirmation gate를 둘 수 있습니다.",
+      "Latency나 value flicker가 과도한 경우 사용자 distraction 가능성을 평가해야 합니다.",
+    ],
+    statBullets: [
+      "정확도 endpoint와 workflow efficiency endpoint를 함께 설계하는 것이 일반적입니다.",
+      "Repeated measures와 operator learning effect를 모델에 반영할 수 있습니다.",
+      "임상적 허용오차 기준은 guideline, expert consensus, historical data를 이용해 사전 정의해야 합니다.",
+    ],
+  },
+};
+
+let activeProtocolCapability = "classification";
+let hasGeneratedProtocolDraft = false;
+let protocolGenerateFeedbackTimer = null;
+let lastGeneratedProtocolPackage = null;
+let activeChecklistPackage = null;
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -816,12 +1427,21 @@ forms.forEach((form) => {
   applyFormTooltips(form);
 });
 
+initializeResultDefaults();
+initializeProtocolPlanner();
+initializeChecklistPage();
+initializeWorkspaceTools();
 checkServerHealth();
 
 async function checkServerHealth() {
   if (!serverStatus) {
-    return;
+    return {
+      ok: false,
+      message: "서버 상태 배지가 없습니다.",
+    };
   }
+
+  serverStatus.classList.remove("connected", "disconnected");
 
   try {
     const response = await fetch("/api/health");
@@ -831,9 +1451,17 @@ async function checkServerHealth() {
     const payload = await response.json();
     serverStatus.textContent = `서버 연결됨 · ${payload.service} · port ${payload.port}`;
     serverStatus.classList.add("connected");
+    return {
+      ok: true,
+      message: serverStatus.textContent,
+    };
   } catch (error) {
     serverStatus.textContent = "서버 연결 실패 · python main.py로 서버를 실행해주세요.";
     serverStatus.classList.add("disconnected");
+    return {
+      ok: false,
+      message: serverStatus.textContent,
+    };
   }
 }
 
@@ -852,6 +1480,1603 @@ function initializeMetricAwareForm(form) {
   });
 
   update();
+}
+
+function initializeResultDefaults() {
+  resultContainers.forEach((container) => {
+    container.dataset.defaultHtml = container.innerHTML.trim();
+  });
+}
+
+function initializeProtocolPlanner() {
+  if (!protocolPlanningView || !protocolForm) {
+    return;
+  }
+
+  protocolCapabilityButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setProtocolCapability(button.dataset.protocolCapability, true);
+    });
+  });
+
+  protocolGenerateButton?.addEventListener("click", () => {
+    generateProtocolDraft({
+      announce: true,
+      scrollToOutput: true,
+      showFeedback: true,
+    });
+  });
+
+  protocolCopyButton?.addEventListener("click", async () => {
+    if (!hasGeneratedProtocolDraft) {
+      if (protocolHelp) {
+        protocolHelp.textContent = "먼저 '프로토콜 초안 생성' 버튼을 눌러 초안을 만든 뒤 복사할 수 있습니다.";
+      }
+      return;
+    }
+
+    const text = String(protocolOutput?.innerText || "").trim();
+    if (!text) {
+      return;
+    }
+
+    try {
+      await copyTextToClipboard(text);
+      const config = protocolCapabilityConfigs[activeProtocolCapability];
+      if (config && protocolHelp) {
+        protocolHelp.textContent = `${config.help} 현재 생성된 프로토콜 초안을 클립보드에 복사했습니다.`;
+      }
+    } catch (error) {
+      const config = protocolCapabilityConfigs[activeProtocolCapability];
+      if (config && protocolHelp) {
+        protocolHelp.textContent = `${config.help} 브라우저 권한 문제로 복사는 완료되지 않았습니다.`;
+      }
+    }
+  });
+
+  protocolOpenChecklistButton?.addEventListener("click", () => {
+    openProtocolChecklistPage();
+  });
+
+  setProtocolCapability(activeProtocolCapability, true, false);
+}
+
+function getProtocolConfigDefaults(config) {
+  return {
+    ...protocolCommonDefaults,
+    ...(protocolWorkflowDefaults[config.workflowType] || {}),
+    ...config.defaults,
+  };
+}
+
+function setProtocolCapability(capabilityId, resetFormValues = false, shouldGenerate = hasGeneratedProtocolDraft) {
+  const config = protocolCapabilityConfigs[capabilityId];
+  if (!config || !protocolForm) {
+    return;
+  }
+
+  activeProtocolCapability = capabilityId;
+
+  protocolCapabilityButtons.forEach((button) => {
+    const isActive = button.dataset.protocolCapability === capabilityId;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  if (resetFormValues) {
+    setFormValues(protocolForm, getProtocolConfigDefaults(config));
+  }
+
+  toggleProtocolFields(config.workflowType);
+  updateProtocolPlannerMeta(config);
+
+  if (shouldGenerate) {
+    generateProtocolDraft();
+  } else {
+    renderProtocolPlaceholder(config);
+  }
+}
+
+function toggleProtocolFields(workflowType) {
+  protocolDynamicFields.forEach((fieldWrapper) => {
+    const fieldName = fieldWrapper.dataset.protocolField;
+    const shouldShow =
+      workflowType === "realtime"
+        ? ["overlayMode", "latencyTarget"].includes(fieldName)
+        : fieldName === "savedWorkflow";
+
+    fieldWrapper.classList.toggle("field-hidden", !shouldShow);
+    fieldWrapper.toggleAttribute("hidden", !shouldShow);
+    fieldWrapper.setAttribute("aria-hidden", String(!shouldShow));
+    fieldWrapper.style.display = shouldShow ? "" : "none";
+    fieldWrapper.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.disabled = !shouldShow;
+    });
+  });
+}
+
+function updateProtocolPlannerMeta(config) {
+  if (protocolModeBanner) {
+    protocolModeBanner.textContent = config.banner;
+  }
+
+  if (protocolHelp) {
+    protocolHelp.textContent = config.help;
+  }
+
+  if (protocolCapabilityTitle) {
+    protocolCapabilityTitle.textContent = config.label;
+  }
+
+  if (protocolCapabilityDescription) {
+    protocolCapabilityDescription.textContent = config.description;
+  }
+
+  if (protocolSummaryWorkflow) {
+    protocolSummaryWorkflow.textContent = config.workflowSummary;
+  }
+
+  if (protocolSummaryEndpoint) {
+    protocolSummaryEndpoint.textContent = config.endpointSummary;
+  }
+
+  if (protocolSummaryDesign) {
+    protocolSummaryDesign.textContent = config.designSummary;
+  }
+
+  if (protocolTimingNotes) {
+    protocolTimingNotes.innerHTML = config.timingNotes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+  }
+}
+
+function renderProtocolPlaceholder(config = protocolCapabilityConfigs[activeProtocolCapability]) {
+  if (!protocolOutput || !config) {
+    return;
+  }
+
+  hasGeneratedProtocolDraft = false;
+  protocolOutput.classList.remove("is-generated");
+  protocolOutput.classList.add("is-placeholder");
+  protocolOutput.innerHTML = `
+    <div class="protocol-output-header">
+      <div>
+        <p class="section-kicker">Protocol Draft</p>
+        <h2>${escapeHtml(config.label)} 프로토콜 초안 준비</h2>
+        <p class="result-meta">입력값을 조정한 뒤 '프로토콜 초안 생성' 버튼을 누르면 초음파 임상시험용 구조화된 초안을 아래에 생성합니다.</p>
+      </div>
+      <div class="protocol-tag-row">
+        <span class="protocol-tag">${escapeHtml(config.workflowType === "realtime" ? "Real-time AI" : "Stored-image AI")}</span>
+        <span class="protocol-tag">${escapeHtml(config.designSummary)}</span>
+      </div>
+    </div>
+
+    <div class="protocol-placeholder">
+      <p class="protocol-placeholder-title">생성 전 안내</p>
+      <ul class="protocol-section-list">
+        <li>AI 기능 유형과 intended use를 먼저 고정하세요.</li>
+        <li>저장형인지 실시간형인지에 따라 workflow와 endpoint가 달라집니다.</li>
+        <li>초안 생성 후 아래 결과 영역으로 자동 이동합니다.</li>
+      </ul>
+    </div>
+  `;
+}
+
+function generateProtocolDraft(options = {}) {
+  if (!protocolOutput || !protocolForm) {
+    return;
+  }
+
+  const context = buildProtocolContext();
+  if (!context) {
+    return;
+  }
+
+  const protocolPackage = buildProtocolPackage(context);
+
+  hasGeneratedProtocolDraft = true;
+  lastGeneratedProtocolPackage = protocolPackage;
+  saveProtocolPackage(protocolPackage);
+  protocolOutput.classList.remove("is-placeholder");
+  protocolOutput.classList.add("is-generated");
+  protocolOutput.innerHTML = renderProtocolDraft(context, protocolPackage);
+
+  if (options.announce && protocolHelp) {
+    protocolHelp.textContent = `${context.config.help} 아래에 ${context.config.label} 프로토콜 초안을 생성했습니다.`;
+  }
+
+  if (options.showFeedback) {
+    showProtocolGenerateFeedback();
+  }
+
+  if (options.scrollToOutput) {
+    scrollToElement(protocolOutput, "start");
+  }
+}
+
+function showProtocolGenerateFeedback() {
+  if (!protocolGenerateButton) {
+    return;
+  }
+
+  clearTimeout(protocolGenerateFeedbackTimer);
+  protocolGenerateButton.textContent = "초안 생성 완료";
+  protocolGenerateButton.classList.add("is-success");
+
+  protocolGenerateFeedbackTimer = window.setTimeout(() => {
+    if (!protocolGenerateButton) {
+      return;
+    }
+    protocolGenerateButton.textContent = "프로토콜 초안 생성";
+    protocolGenerateButton.classList.remove("is-success");
+  }, 1400);
+}
+
+function buildProtocolContext() {
+  if (!protocolForm) {
+    return null;
+  }
+
+  const config = protocolCapabilityConfigs[activeProtocolCapability];
+  if (!config) {
+    return null;
+  }
+
+  const inputs = serializeForm(protocolForm);
+  return {
+    config,
+    inputs,
+    comparatorLabel: getSelectValueLabel(protocolForm, "comparator"),
+    hypothesisLabel: getSelectValueLabel(protocolForm, "hypothesis"),
+    dataCollectionPlanLabel: getSelectValueLabel(protocolForm, "dataCollectionPlan"),
+    validationDatasetPlanLabel: getSelectValueLabel(protocolForm, "validationDatasetPlan"),
+    analysisPopulationLabel: getSelectValueLabel(protocolForm, "analysisPopulation"),
+    humanFactorsPlanLabel: getSelectValueLabel(protocolForm, "humanFactorsPlan"),
+    monitoringPlanLabel: getSelectValueLabel(protocolForm, "monitoringPlan"),
+    changeControlPlanLabel: getSelectValueLabel(protocolForm, "changeControlPlan"),
+    savedWorkflowLabel: getSelectValueLabel(protocolForm, "savedWorkflow"),
+    overlayModeLabel: getSelectValueLabel(protocolForm, "overlayMode"),
+  };
+}
+
+function applyProtocolPreset(presetKey) {
+  if (!protocolForm) {
+    return "";
+  }
+
+  const config = protocolCapabilityConfigs[activeProtocolCapability];
+  if (!config) {
+    return "";
+  }
+
+  const nextValues = {
+    ...getProtocolConfigDefaults(config),
+  };
+
+  if (presetKey === "highAssurance") {
+    const configDefaults = getProtocolConfigDefaults(config);
+    nextValues.sites = Number(configDefaults.sites || 1) + 2;
+    nextValues.readers = Number(configDefaults.readers || 1) + 2;
+    nextValues.comparator = "expert-consensus";
+    nextValues.validationDatasetPlan = "external-site-sequestered";
+    nextValues.analysisPopulation = "both-primary-itt";
+    nextValues.humanFactorsPlan =
+      config.workflowType === "realtime" ? "human-factors-validation" : "usability-evaluation";
+    nextValues.monitoringPlan =
+      config.workflowType === "realtime" ? "site-drift-dashboard" : "quarterly-review";
+
+    if (config.workflowType === "realtime") {
+      nextValues.latencyTarget = Math.max(80, Number(configDefaults.latencyTarget || 150) - 40);
+      nextValues.changeControlPlan = "pccp-performance";
+    } else {
+      nextValues.changeControlPlan = "locked-model";
+    }
+  }
+
+  setFormValues(protocolForm, nextValues);
+  toggleProtocolFields(config.workflowType);
+  if (hasGeneratedProtocolDraft) {
+    generateProtocolDraft();
+  } else {
+    renderProtocolPlaceholder(config);
+  }
+  return config.label;
+}
+
+function renderProtocolDraft(context, protocolPackage = buildProtocolPackage(context)) {
+  const {
+    config,
+    inputs,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+  } = context;
+  const siteText = `${formatCount(inputs.sites)}개 기관`;
+  const readerText = `${formatCount(inputs.readers)}명 전문가 판독`;
+  const workflowSpecificText =
+    config.workflowType === "realtime"
+      ? `AI는 live scanning 중 ${escapeHtml(overlayModeLabel)} 형태로 결과를 표시하고, 반응 기준은 ${escapeHtml(
+          String(inputs.latencyTarget)
+        )}ms 이하로 관리합니다.`
+      : `AI 실행 시점은 "${escapeHtml(savedWorkflowLabel)}"로 정의하며, 사용자가 저장한 이미지 또는 cine loop에 대해서만 분석합니다.`;
+
+  const synopsis = `본 시험은 ${escapeHtml(inputs.indication)}를 위한 ${escapeHtml(
+    config.label
+  )} AI 기능을 평가하기 위한 전향적 다기관 초음파 clinical trial로 계획한다. Intended use는 ${escapeHtml(
+    inputs.intendedUse
+  )}이며, 주요 비교 기준은 ${escapeHtml(comparatorLabel)}이고 주가설은 ${escapeHtml(
+    hypothesisLabel
+  )}이다. 대상 환자군은 ${escapeHtml(inputs.population)}로 정의하며, ${escapeHtml(
+    inputs.primaryEndpoint
+  )}를 주요 평가변수로 설정한다.`;
+
+  const designBullets = [
+    `${escapeHtml(config.designSummary)} 구조를 기본 설계로 사용하고, 최소 ${escapeHtml(siteText)}에서 자료를 수집합니다.`,
+    `기관 간 장비, probe, preset 차이를 반영할 수 있도록 site-stratified enrollment 및 quality control plan을 둡니다.`,
+    `${escapeHtml(readerText)} 체계를 두고 blinded independent review 또는 adjudication workflow를 운영합니다.`,
+    `Comparator는 ${escapeHtml(comparatorLabel)} 기준으로 정의하고, reference standard는 ${escapeHtml(
+      inputs.referenceStandard
+    )}로 고정합니다.`,
+  ];
+
+  const workflowBullets = [
+    workflowSpecificText,
+    ...config.workflowBullets,
+    config.workflowType === "realtime"
+      ? "실시간 모드에서는 AI on/off 상태, user override, key capture 시점을 모두 로그로 남기도록 합니다."
+      : "저장형 모드에서는 어떤 사용자가 어떤 규칙으로 저장했는지 audit trail을 남기도록 합니다.",
+  ];
+
+  const endpointBullets = [
+    `Primary endpoint는 ${escapeHtml(inputs.primaryEndpoint)} 중심으로 정의합니다.`,
+    ...config.endpointBullets,
+    config.workflowType === "realtime"
+      ? "실시간 기능은 latency, task completion time, user interaction metrics를 key secondary endpoint로 추가하는 것이 바람직합니다."
+      : "저장형 기능은 저장 시점 bias와 image selection bias를 탐색하는 sensitivity analysis를 포함하는 것이 좋습니다.",
+  ];
+
+  const populationBullets = [
+    `주 대상자는 ${escapeHtml(inputs.population)}이며, inclusion/exclusion 기준은 적응증과 표준 진료 흐름에 맞춰 세부화합니다.`,
+    "기관별 검사자 숙련도와 장비 종류를 기록해 operator- and device-level subgroup analysis를 가능하게 합니다.",
+    "질환 prevalence 또는 구조 난이도에 따라 screening log와 enrolled cohort의 차이를 별도로 모니터링합니다.",
+  ];
+
+  const ultrasoundBullets = [...config.ultrasoundBullets];
+  const safetyBullets = [...config.safetyBullets];
+  const dataValidationBullets = [
+    `Data collection will follow ${dataCollectionPlanLabel}.`,
+    `Performance validation will use ${validationDatasetPlanLabel}.`,
+    `The primary analysis population will be ${analysisPopulationLabel}.`,
+    `Key subgroup analyses will cover ${inputs.subgroupFocus}.`,
+    "Validation data will remain independent or sequestered from development and tuning data, and any overlap will require explicit justification before analysis.",
+    "Reference standard establishment, blinding, adjudication, uncertainty, and the handling of equivocal or missing cases will be documented before database lock.",
+  ];
+  const humanFactorsBullets = [
+    `Human factors and usability strategy: ${humanFactorsPlanLabel}.`,
+    config.workflowType === "realtime"
+      ? "The usability package should evaluate whether users correctly interpret overlays, confidence states, latency behavior, and fallback conditions during active scanning."
+      : "The usability package should evaluate image selection, post-scan review behavior, confidence communication, and any risk of overreliance on stored-image outputs.",
+    "Labeling should disclose known limitations, subgroup performance caveats, compatible acquisition conditions, and user responsibilities for final clinical decision-making.",
+    "Version-specific behavior and any clinically meaningful differences from prior validated versions should be transparent to users and reviewers.",
+  ];
+  const changeControlSpecificNote =
+    inputs.changeControlPlan === "locked-model"
+      ? "The current plan assumes a locked model, and modifications that materially affect safety, effectiveness, intended use, population, or compatible inputs should be routed through a new submission strategy."
+      : inputs.changeControlPlan === "pccp-performance"
+        ? "A bounded PCCP strategy should pre-specify which performance improvements are allowed, how updated data are collected, and what acceptance criteria must be met before release."
+        : inputs.changeControlPlan === "pccp-input-compatibility"
+          ? "A bounded PCCP strategy should define the compatible new devices, presets, or acquisition inputs and require validation on representative holdout data before deployment."
+          : "A bounded PCCP strategy should define the limits of any population expansion, the subgroup evidence required, and the criteria for when a new submission becomes necessary.";
+  const monitoringBullets = [
+    `Device performance monitoring plan: ${monitoringPlanLabel}.`,
+    `Change control strategy: ${changeControlPlanLabel}.`,
+    "Monitoring should track adverse events, subgroup drift, site-specific degradation, and any meaningful change in device performance after deployment or update.",
+    changeControlSpecificNote,
+  ];
+  const statBullets = [
+    ...config.statBullets,
+    `Acceptance criteria will be pre-specified as follows: ${inputs.acceptanceCriteria}.`,
+    `All primary performance estimates should be reported with confidence intervals and subgroup breakdowns across ${inputs.subgroupFocus}.`,
+    "Sample-size justification should address repeated measurements or clustering, missing data and outliers, and variability in the clinical reference standard when reader interpretation is used.",
+    "샘플수 산정은 별도 performance planning page 또는 SAP에서 endpoint 특성에 맞춰 계산합니다.",
+  ];
+
+  return `
+    <div class="protocol-output-header">
+      <div>
+        <p class="section-kicker">Protocol Draft</p>
+        <h2>${escapeHtml(config.label)} 초음파 임상시험 프로토콜 초안</h2>
+        <p class="result-meta">${escapeHtml(synopsis)}</p>
+      </div>
+      <div class="protocol-tag-row">
+        <span class="protocol-tag">${escapeHtml(config.workflowType === "realtime" ? "Real-time AI" : "Stored-image AI")}</span>
+        <span class="protocol-tag">${escapeHtml(hypothesisLabel)}</span>
+        <span class="protocol-tag">${escapeHtml(siteText)}</span>
+        <span class="protocol-tag">${escapeHtml(readerText)}</span>
+      </div>
+    </div>
+
+    <div class="protocol-output-grid">
+      <article class="protocol-output-section is-wide">
+        <h3>1. Study Synopsis</h3>
+        <p>${escapeHtml(synopsis)}</p>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>2. Study Design</h3>
+        <ul class="protocol-section-list">${designBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>3. Clinical Workflow</h3>
+        <ul class="protocol-section-list">${workflowBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>4. Population And Eligibility</h3>
+        <ul class="protocol-section-list">${populationBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>5. Endpoints And Hypothesis</h3>
+        <ul class="protocol-section-list">${endpointBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>6. Ultrasound-Specific Operations</h3>
+        <ul class="protocol-section-list">${ultrasoundBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>7. Safety And Human Factors</h3>
+        <ul class="protocol-section-list">${safetyBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>8. Statistical And Operational Notes</h3>
+        <ul class="protocol-section-list">${statBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>9. Data Management And Validation Controls</h3>
+        <ul class="protocol-section-list">${dataValidationBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>10. Human Factors, Labeling, And Transparency</h3>
+        <ul class="protocol-section-list">${humanFactorsBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>11. Monitoring And Change Control</h3>
+        <ul class="protocol-section-list">${monitoringBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>12. Study Flowchart</h3>
+        ${renderProtocolFlowchart(protocolPackage.flowchartSteps, protocolPackage.workflowType)}
+      </article>
+    </div>
+  `;
+}
+
+function initializeChecklistPage() {
+  if (!protocolChecklistView) {
+    return;
+  }
+
+  checklistCopyButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!activeChecklistPackage) {
+        return;
+      }
+
+      try {
+        await copyTextToClipboard(buildChecklistCopyText(activeChecklistPackage));
+      } catch (error) {
+        // Keep the current page state when clipboard access is blocked.
+      }
+    });
+  });
+
+  checklistResetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!activeChecklistPackage) {
+        return;
+      }
+
+      saveChecklistProgress(activeChecklistPackage.signature, {});
+      renderChecklistPage(activeChecklistPackage);
+    });
+  });
+
+  const storedPackage = loadProtocolPackage();
+  if (!storedPackage) {
+    renderChecklistEmptyState();
+    return;
+  }
+
+  activeChecklistPackage = storedPackage;
+  renderChecklistPage(storedPackage);
+}
+
+function openProtocolChecklistPage() {
+  if (!protocolForm) {
+    return;
+  }
+
+  if (!hasGeneratedProtocolDraft) {
+    generateProtocolDraft({
+      showFeedback: true,
+    });
+  }
+
+  const context = buildProtocolContext();
+  if (!context) {
+    return;
+  }
+
+  const protocolPackage = lastGeneratedProtocolPackage || buildProtocolPackage(context);
+  lastGeneratedProtocolPackage = protocolPackage;
+
+  if (!saveProtocolPackage(protocolPackage)) {
+    if (protocolHelp) {
+      protocolHelp.textContent = `${context.config.help} Checklist page could not be opened because local browser storage is unavailable.`;
+    }
+    return;
+  }
+
+  window.location.href = "/protocol-checklist";
+}
+
+function buildProtocolPackage(context) {
+  const {
+    config,
+    inputs,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+  } = context;
+  const siteCount = Math.max(Number(inputs.sites) || 0, 0);
+  const readerCount = Math.max(Number(inputs.readers) || 0, 0);
+  const siteText = `${formatCount(siteCount)} ${siteCount === 1 ? "site" : "sites"}`;
+  const readerText = `${formatCount(readerCount)} expert ${readerCount === 1 ? "reader" : "readers"}`;
+  const workflowLabel = config.workflowType === "realtime" ? "Real-time AI" : "Stored-image AI";
+  const workflowExecution =
+    config.workflowType === "realtime"
+      ? `Run ${config.label} during live scanning as a ${overlayModeLabel || "visual overlay"} workflow and keep response time within ${formatDisplayNumber(Number(inputs.latencyTarget) || 0, 0)} ms.`
+      : `Run ${config.label} only after the operator stores the representative image or cine loop using the "${savedWorkflowLabel || "saved image"}" trigger.`;
+  const synopsis = normalizeWhitespace(
+    `${config.label} ultrasound clinical trial for ${inputs.indication}. Intended use: ${inputs.intendedUse}. Target population: ${inputs.population}. Primary endpoint focus: ${inputs.primaryEndpoint}.`
+  );
+  const signature = buildProtocolSignature(context);
+  const flowchartSteps = buildProtocolFlowchartSteps(context, {
+    siteText,
+    readerText,
+    workflowExecution,
+  });
+  const checklistSections = buildProtocolChecklistSections(context, {
+    siteText,
+    readerText,
+    workflowExecution,
+    signature,
+  });
+
+  return {
+    version: 1,
+    signature,
+    generatedAt: new Date().toISOString(),
+    capabilityId: activeProtocolCapability,
+    label: config.label,
+    capabilityDescription: config.description,
+    workflowType: config.workflowType,
+    workflowLabel,
+    designSummary: config.designSummary,
+    endpointSummary: config.endpointSummary,
+    inputs: { ...inputs },
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+    siteText,
+    readerText,
+    workflowExecution,
+    synopsis,
+    flowchartSteps,
+    checklistSections,
+  };
+}
+
+function buildProtocolSignature(context) {
+  const { inputs } = context;
+
+  return [
+    activeProtocolCapability,
+    normalizeWhitespace(inputs.indication || ""),
+    normalizeWhitespace(inputs.intendedUse || ""),
+    normalizeWhitespace(inputs.population || ""),
+    normalizeWhitespace(inputs.primaryEndpoint || ""),
+  ]
+    .join("|")
+    .toLowerCase();
+}
+
+function buildProtocolFlowchartSteps(context, summary = {}) {
+  const { config, inputs, comparatorLabel, hypothesisLabel } = context;
+  const baseSteps = [
+    {
+      title: "Protocol freeze",
+      detail: `Lock indication, intended use, comparator (${comparatorLabel}), and hypothesis (${hypothesisLabel}).`,
+    },
+    {
+      title: "Site start-up",
+      detail: `Qualify ${summary.siteText || "sites"}, train operators and ${summary.readerText || "readers"}, and align device logging.`,
+    },
+    {
+      title: "Screen and enroll",
+      detail: `Enroll the intended-use population (${inputs.population}) with a screening log and eligibility checks.`,
+    },
+    {
+      title: config.workflowType === "realtime" ? "Live scan with AI" : "Scan, save, then run AI",
+      detail: summary.workflowExecution || "Execute the AI workflow exactly as described in the generated protocol draft.",
+    },
+    {
+      title: "Reference standard review",
+      detail: `Assemble ${inputs.referenceStandard} and complete blinded review or adjudication before database lock.`,
+    },
+    {
+      title: "Endpoint package and close-out",
+      detail: `Finalize ${inputs.primaryEndpoint}, resolve deviations, complete the SAP handoff, and prepare the study report.`,
+    },
+    {
+      title: "Monitor and govern changes",
+      detail: `Run ${context.monitoringPlanLabel} and follow ${context.changeControlPlanLabel} for post-validation monitoring, versioning, and future model updates.`,
+    },
+  ];
+
+  return baseSteps.map((step, index) => ({
+    id: `${activeProtocolCapability}-flow-${index + 1}`,
+    number: String(index + 1).padStart(2, "0"),
+    ...step,
+  }));
+}
+
+function buildProtocolChecklistSections(context, summary = {}) {
+  const {
+    config,
+    inputs,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+  } = context;
+  const makeItems = (sectionKey, items) =>
+    items.map((item, index) => ({
+      id: `${summary.signature}:${sectionKey}:${index + 1}`,
+      ...item,
+    }));
+
+  return [
+    {
+      key: "startup",
+      title: "Study start-up and governance",
+      description: "Freeze the clinical question and governance package before sites begin enrollment.",
+      items: makeItems("startup", [
+        {
+          title: "Confirm the study indication and intended use",
+          note: `Current draft: ${inputs.indication} / ${inputs.intendedUse}.`,
+        },
+        {
+          title: "Lock comparator, hypothesis, and reference standard",
+          note: `Comparator: ${comparatorLabel}. Hypothesis: ${hypothesisLabel}. Reference standard: ${inputs.referenceStandard}.`,
+        },
+        {
+          title: "Approve the final site and reader footprint",
+          note: `Current plan: ${summary.siteText || "sites"} and ${summary.readerText || "readers"}.`,
+        },
+      ]),
+    },
+    {
+      key: "validation-controls",
+      title: "Validation data and reference-standard controls",
+      description: "Protect dataset independence and document how truth and subgroup coverage are controlled.",
+      items: makeItems("validation-controls", [
+        {
+          title: "Lock the data collection and validation-set strategy",
+          note: `Current plan: ${dataCollectionPlanLabel} with ${validationDatasetPlanLabel}.`,
+        },
+        {
+          title: "Keep the validation dataset independent or sequestered from development data",
+          note: "Any overlap between training, tuning, and validation use should be justified before final analysis.",
+        },
+        {
+          title: "Document subgroup coverage, reference standard uncertainty, and missing/equivocal-case handling",
+          note: `Primary analysis population: ${analysisPopulationLabel}. Key subgroup plan: ${inputs.subgroupFocus}.`,
+        },
+      ]),
+    },
+    {
+      key: "readiness",
+      title: "Site readiness and training",
+      description: "Prepare operators, readers, and the data capture workflow before the first subject is enrolled.",
+      items: makeItems("readiness", [
+        {
+          title: "Train sonographers and investigators on the acquisition workflow",
+          note: config.workflowType === "realtime" ? "Training must include live scan behavior, overlay review, and user override handling." : "Training must include saved-image trigger rules and representative image selection rules.",
+        },
+        {
+          title: "Train blinded readers and adjudicators",
+          note: "Keep reader instructions, blinding rules, and adjudication criteria version-controlled.",
+        },
+        {
+          title: "Verify probe, preset, device, and operator logging",
+          note: "The checklist should capture device-level and operator-level metadata for subgroup and quality reviews.",
+        },
+      ]),
+    },
+    {
+      key: "enrollment",
+      title: "Screening and enrollment",
+      description: "Keep the enrolled cohort aligned with the intended-use population and document exclusions consistently.",
+      items: makeItems("enrollment", [
+        {
+          title: "Apply inclusion and exclusion criteria consistently",
+          note: `Target population in the current draft: ${inputs.population}.`,
+        },
+        {
+          title: "Maintain a screening log with exclusion reasons",
+          note: "Track the gap between screened, eligible, enrolled, and analyzable subjects.",
+        },
+        {
+          title: "Monitor prevalence and cohort balance across sites",
+          note: "Use site-level tracking so enrollment does not drift away from the intended use case mix.",
+        },
+      ]),
+    },
+    {
+      key: "execution",
+      title: "Acquisition and AI execution",
+      description: "Execute the ultrasound scan and the AI workflow exactly as written in the draft protocol.",
+      items: makeItems("execution", [
+        {
+          title: "Perform the ultrasound scan according to the protocol-defined acquisition rules",
+          note: "Record any device, preset, or operator deviations that could affect endpoint quality.",
+        },
+        {
+          title: config.workflowType === "realtime" ? "Run AI during live scanning and capture on-screen behavior" : "Save the representative image or cine loop before AI analysis",
+          note: summary.workflowExecution,
+        },
+        {
+          title: config.workflowType === "realtime" ? "Log AI on/off state, overrides, and latency-related events" : "Maintain an audit trail of who saved the image, when it was saved, and why it was selected",
+          note: config.workflowType === "realtime" ? `Use the target latency threshold of ${formatDisplayNumber(Number(inputs.latencyTarget) || 0, 0)} ms for operational review.` : `Stored-image workflow selected: ${context.savedWorkflowLabel || "saved image review"}.`,
+        },
+      ]),
+    },
+    {
+      key: "review",
+      title: "Reference standard and endpoint assembly",
+      description: "Assemble the read package, finalize truth, and make the endpoint dataset analysis-ready.",
+      items: makeItems("review", [
+        {
+          title: "Complete blinded review and adjudication",
+          note: "Resolve disagreements using the pre-specified adjudication workflow before analysis lock.",
+        },
+        {
+          title: "Assemble the endpoint package",
+          note: `Primary endpoint focus: ${inputs.primaryEndpoint}.`,
+        },
+        {
+          title: "Review missing data, protocol deviations, and image quality exceptions",
+          note: "Document which cases remain analyzable for the primary and secondary endpoint sets.",
+        },
+      ]),
+    },
+    {
+      key: "monitoring",
+      title: "Monitoring, labeling, and change control",
+      description: "Carry the study into a lifecycle-ready operating model with transparent communication and bounded updates.",
+      items: makeItems("monitoring", [
+        {
+          title: "Prepare usability and labeling evidence",
+          note: `Current plan: ${humanFactorsPlanLabel}. Labeling should describe workflow limitations, compatible inputs, and subgroup caveats.`,
+        },
+        {
+          title: "Prepare the performance monitoring plan",
+          note: `Current plan: ${monitoringPlanLabel}. Monitoring should cover subgroup drift, site-specific degradation, and post-release safety issues.`,
+        },
+        {
+          title: "Document the bounded change-control strategy",
+          note: `Current plan: ${changeControlPlanLabel}. Ensure future performance or compatibility changes stay within the documented update path.`,
+        },
+      ]),
+    },
+    {
+      key: "closeout",
+      title: "Safety, human factors, and close-out",
+      description: "Close the operational loop before statistical analysis and final reporting.",
+      items: makeItems("closeout", [
+        {
+          title: "Review safety and usability observations",
+          note: config.workflowType === "realtime" ? "Include display behavior, user interpretation, and any workflow interruptions caused by live AI output." : "Include issues related to image selection, delayed analysis, and post-scan review usability.",
+        },
+        {
+          title: "Lock the analysis dataset and hand off to statistics",
+          note: `Keep the SAP aligned with the ${config.designSummary.toLowerCase()} plan.`,
+        },
+        {
+          title: "Archive the audit trail and reporting package",
+          note: "Preserve training records, deviations, adjudication outputs, and the final report inputs together.",
+        },
+      ]),
+    },
+  ];
+}
+
+function renderProtocolFlowchart(steps, workflowType) {
+  return `
+    <div class="protocol-flowchart ${workflowType === "realtime" ? "is-realtime" : "is-stored"}" role="img" aria-label="Study flowchart">
+      ${steps
+        .map(
+          (step, index) => `
+            <div class="protocol-flow-step">
+              <div class="protocol-flow-badge">${escapeHtml(step.number)}</div>
+              <div class="protocol-flow-card">
+                <p class="protocol-flow-title">${escapeHtml(step.title)}</p>
+                <p class="protocol-flow-detail">${escapeHtml(step.detail)}</p>
+              </div>
+              ${index < steps.length - 1 ? '<div class="protocol-flow-arrow" aria-hidden="true"></div>' : ""}
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderChecklistEmptyState() {
+  activeChecklistPackage = null;
+  setChecklistActionAvailability(false);
+
+  if (checklistTitle) {
+    checklistTitle.textContent = "Study Execution Checklist";
+  }
+
+  if (checklistSummary) {
+    checklistSummary.textContent =
+      "Generate a protocol in Protocol Planning first, then open this page to turn that draft into a step-by-step execution checklist.";
+  }
+
+  if (checklistCapability) {
+    checklistCapability.textContent = "Not loaded";
+  }
+
+  if (checklistWorkflow) {
+    checklistWorkflow.textContent = "Awaiting protocol";
+  }
+
+  if (checklistEndpoint) {
+    checklistEndpoint.textContent = "Not loaded";
+  }
+
+  if (checklistSites) {
+    checklistSites.textContent = "0 sites";
+  }
+
+  if (checklistReaders) {
+    checklistReaders.textContent = "0 readers";
+  }
+
+  if (checklistGeneratedAt) {
+    checklistGeneratedAt.textContent = "Generated package not available.";
+  }
+
+  if (checklistTags) {
+    checklistTags.innerHTML = `
+      <li>Protocol package not loaded yet.</li>
+      <li>Return to Protocol Planning, generate a draft, then reopen this checklist page.</li>
+    `;
+  }
+
+  if (checklistProgressCount) {
+    checklistProgressCount.textContent = "0 / 0";
+  }
+
+  if (checklistProgressText) {
+    checklistProgressText.textContent = "0% complete";
+  }
+
+  if (checklistProgressBar) {
+    checklistProgressBar.style.width = "0%";
+  }
+
+  if (checklistSections) {
+    checklistSections.innerHTML = `
+      <section class="protocol-placeholder checklist-empty-state">
+        <p class="protocol-placeholder-title">Protocol package required</p>
+        <p class="result-meta">Go to Protocol Planning, generate the draft, then use "체크리스트 페이지 열기" to load the study execution checklist.</p>
+      </section>
+    `;
+  }
+
+  if (checklistFlowchart) {
+    checklistFlowchart.innerHTML = `
+      <div class="protocol-placeholder">
+        <p class="protocol-placeholder-title">Flowchart will appear here</p>
+        <p class="result-meta">Once a protocol package is loaded, the protocol order will be rendered as a visual flow diagram.</p>
+      </div>
+    `;
+  }
+}
+
+function renderChecklistPage(protocolPackage) {
+  activeChecklistPackage = protocolPackage;
+  setChecklistActionAvailability(true);
+
+  if (checklistTitle) {
+    checklistTitle.textContent = `${protocolPackage.label} Study Execution Checklist`;
+  }
+
+  if (checklistSummary) {
+    checklistSummary.textContent = protocolPackage.synopsis;
+  }
+
+  if (checklistCapability) {
+    checklistCapability.textContent = protocolPackage.label;
+  }
+
+  if (checklistWorkflow) {
+    checklistWorkflow.textContent = protocolPackage.workflowLabel;
+  }
+
+  if (checklistEndpoint) {
+    checklistEndpoint.textContent = normalizeWhitespace(protocolPackage.inputs.primaryEndpoint || protocolPackage.endpointSummary);
+  }
+
+  if (checklistSites) {
+    checklistSites.textContent = protocolPackage.siteText;
+  }
+
+  if (checklistReaders) {
+    checklistReaders.textContent = protocolPackage.readerText;
+  }
+
+  if (checklistGeneratedAt) {
+    checklistGeneratedAt.textContent = `Generated ${formatTimestamp(protocolPackage.generatedAt)}`;
+  }
+
+  if (checklistTags) {
+    const tagItems = [
+      `Workflow: ${protocolPackage.workflowLabel}`,
+      `Comparator: ${protocolPackage.comparatorLabel}`,
+      `Hypothesis: ${protocolPackage.hypothesisLabel}`,
+      `Primary endpoint: ${protocolPackage.inputs.primaryEndpoint}`,
+      `Validation set: ${protocolPackage.validationDatasetPlanLabel}`,
+      `Change control: ${protocolPackage.changeControlPlanLabel}`,
+    ];
+    checklistTags.innerHTML = tagItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  }
+
+  if (checklistFlowchart) {
+    checklistFlowchart.innerHTML = renderProtocolFlowchart(protocolPackage.flowchartSteps, protocolPackage.workflowType);
+  }
+
+  const progress = loadChecklistProgress(protocolPackage.signature);
+
+  if (checklistSections) {
+    checklistSections.innerHTML = protocolPackage.checklistSections
+      .map((section, index) => renderChecklistSection(section, index, progress))
+      .join("");
+
+    checklistSections.querySelectorAll("[data-checklist-item]").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const nextProgress = {
+          ...loadChecklistProgress(protocolPackage.signature),
+          [event.currentTarget.dataset.checklistItem]: event.currentTarget.checked,
+        };
+        saveChecklistProgress(protocolPackage.signature, nextProgress);
+        event.currentTarget.closest(".checklist-item")?.classList.toggle("is-checked", event.currentTarget.checked);
+        updateChecklistProgress(protocolPackage, nextProgress);
+      });
+    });
+  }
+
+  updateChecklistProgress(protocolPackage, progress);
+}
+
+function renderChecklistSection(section, index, progress) {
+  return `
+    <section class="checklist-section">
+      <div class="checklist-section-header">
+        <p class="section-kicker">Checklist Section ${String(index + 1).padStart(2, "0")}</p>
+        <h3>${escapeHtml(section.title)}</h3>
+        <p>${escapeHtml(section.description)}</p>
+      </div>
+      <div class="checklist-items">
+        ${section.items
+          .map((item) => {
+            const checked = Boolean(progress[item.id]);
+            return `
+              <label class="checklist-item${checked ? " is-checked" : ""}">
+                <input type="checkbox" data-checklist-item="${escapeHtml(item.id)}"${checked ? " checked" : ""}>
+                <span class="checklist-item-copy">
+                  <span class="checklist-item-title">${escapeHtml(item.title)}</span>
+                  <span class="checklist-item-note">${escapeHtml(item.note)}</span>
+                </span>
+              </label>
+            `;
+          })
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function updateChecklistProgress(protocolPackage, progress) {
+  const total = protocolPackage.checklistSections.reduce((sum, section) => sum + section.items.length, 0);
+  const completed = protocolPackage.checklistSections.reduce(
+    (sum, section) => sum + section.items.filter((item) => Boolean(progress[item.id])).length,
+    0
+  );
+  const percent = total ? Math.round((completed / total) * 100) : 0;
+
+  if (checklistProgressCount) {
+    checklistProgressCount.textContent = `${completed} / ${total}`;
+  }
+
+  if (checklistProgressText) {
+    checklistProgressText.textContent = `${percent}% complete`;
+  }
+
+  if (checklistProgressBar) {
+    checklistProgressBar.style.width = `${percent}%`;
+  }
+}
+
+function buildChecklistCopyText(protocolPackage) {
+  const progress = loadChecklistProgress(protocolPackage.signature);
+  const lines = [
+    `[${protocolPackage.label} Study Execution Checklist]`,
+    `Generated: ${formatTimestamp(protocolPackage.generatedAt)}`,
+    `Workflow: ${protocolPackage.workflowLabel}`,
+    `Comparator: ${protocolPackage.comparatorLabel}`,
+    `Hypothesis: ${protocolPackage.hypothesisLabel}`,
+    `Primary endpoint: ${protocolPackage.inputs.primaryEndpoint}`,
+    `Sites: ${protocolPackage.siteText}`,
+    `Readers: ${protocolPackage.readerText}`,
+    "",
+  ];
+
+  protocolPackage.checklistSections.forEach((section, sectionIndex) => {
+    lines.push(`${sectionIndex + 1}. ${section.title}`);
+    section.items.forEach((item) => {
+      const mark = progress[item.id] ? "[x]" : "[ ]";
+      lines.push(`- ${mark} ${item.title}`);
+      lines.push(`  Note: ${item.note}`);
+    });
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
+function setChecklistActionAvailability(isEnabled) {
+  checklistCopyButtons.forEach((button) => {
+    button.disabled = !isEnabled;
+  });
+
+  checklistResetButtons.forEach((button) => {
+    button.disabled = !isEnabled;
+  });
+}
+
+function loadProtocolPackage() {
+  return readJsonFromStorage(protocolPackageStorageKey);
+}
+
+function saveProtocolPackage(protocolPackage) {
+  return writeJsonToStorage(protocolPackageStorageKey, protocolPackage);
+}
+
+function clearStoredProtocolPackage() {
+  removeStorageValue(protocolPackageStorageKey);
+}
+
+function buildChecklistProgressStorageKey(signature) {
+  return `${checklistProgressStoragePrefix}${signature}`;
+}
+
+function loadChecklistProgress(signature) {
+  return readJsonFromStorage(buildChecklistProgressStorageKey(signature)) || {};
+}
+
+function saveChecklistProgress(signature, progress) {
+  writeJsonToStorage(buildChecklistProgressStorageKey(signature), progress);
+}
+
+function readJsonFromStorage(key) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function writeJsonToStorage(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function removeStorageValue(key) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    // Ignore storage cleanup failures.
+  }
+}
+
+function formatTimestamp(value) {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) {
+    return String(value || "");
+  }
+
+  return timestamp.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function initializeWorkspaceTools() {
+  if (!workspaceModeButtons.length) {
+    return;
+  }
+
+  workspaceModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setWorkspaceMode(button.dataset.workspaceMode);
+    });
+  });
+
+  workspaceActionButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      await handleWorkspaceAction(button.dataset.workspaceAction);
+    });
+  });
+}
+
+function setWorkspaceMode(mode) {
+  workspaceModeButtons.forEach((button) => {
+    const isActive = button.dataset.workspaceMode === mode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  workspacePanels.forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.workspacePanel === mode);
+  });
+}
+
+async function handleWorkspaceAction(action) {
+  switch (action) {
+    case "copy-summary": {
+      const snapshot = buildWorkspaceSnapshot();
+      try {
+        await copyTextToClipboard(snapshot);
+        setWorkspaceStatus("현재 화면의 입력값과 결과 요약을 클립보드에 복사했습니다.");
+      } catch (error) {
+        setWorkspaceStatus("브라우저에서 복사를 허용하지 않아 요약 복사에 실패했습니다.");
+      }
+      break;
+    }
+    case "focus-calculator": {
+      const moved = focusActiveCalculator();
+      setWorkspaceStatus(
+        moved
+          ? isProtocolPlannerActive()
+            ? "현재 선택된 프로토콜 입력 영역으로 이동했습니다."
+            : "현재 활성 계산기의 첫 입력 필드로 이동했습니다."
+          : isProtocolPlannerActive()
+            ? "이동할 프로토콜 입력 영역을 찾지 못했습니다."
+            : "이동할 활성 계산기를 찾지 못했습니다."
+      );
+      break;
+    }
+    case "open-assumptions": {
+      const target = isProtocolPlannerActive() ? protocolTimingNotes : document.querySelector(".warning-card");
+      const opened = scrollToElement(target);
+      setWorkspaceStatus(
+        opened
+          ? isProtocolPlannerActive()
+            ? "초음파 운영 포인트와 실시간/저장형 구분 영역으로 이동했습니다."
+            : "핵심 가정과 주의사항 영역으로 이동했습니다."
+          : isProtocolPlannerActive()
+            ? "운영 포인트 영역을 찾지 못했습니다."
+            : "가정 영역을 찾지 못했습니다."
+      );
+      break;
+    }
+    case "apply-baseline-plan": {
+      const label = applyPlanPreset("baseline");
+      setWorkspaceStatus(
+        label
+          ? isProtocolPlannerActive()
+            ? `${label} 프로토콜에 기본 설계값을 적용했습니다.`
+            : `${label} 계산기에 baseline 기본값을 적용했습니다.`
+          : isProtocolPlannerActive()
+            ? "기본 설계값을 적용할 프로토콜을 찾지 못했습니다."
+            : "기본값을 적용할 활성 계산기를 찾지 못했습니다."
+      );
+      break;
+    }
+    case "apply-high-assurance": {
+      const label = applyPlanPreset("highAssurance");
+      setWorkspaceStatus(
+        label
+          ? isProtocolPlannerActive()
+            ? `${label} 프로토콜에 보수적 설정을 적용했습니다.`
+            : `${label} 계산기에 high-assurance 기본값을 적용했습니다.`
+          : isProtocolPlannerActive()
+            ? "보수적 설정을 적용할 프로토콜을 찾지 못했습니다."
+            : "기본값을 적용할 활성 계산기를 찾지 못했습니다."
+      );
+      break;
+    }
+    case "open-formula": {
+      const target = isProtocolPlannerActive() ? protocolOutput : document.querySelector(".formula-block");
+      const opened = scrollToElement(target);
+      setWorkspaceStatus(
+        opened
+          ? isProtocolPlannerActive()
+            ? "생성된 프로토콜 초안 영역으로 이동했습니다."
+            : "공식 설명 영역으로 이동했습니다."
+          : isProtocolPlannerActive()
+            ? "프로토콜 초안 영역을 찾지 못했습니다."
+            : "공식 영역을 찾지 못했습니다."
+      );
+      break;
+    }
+    case "load-demo": {
+      const label = loadDemoValuesIntoActiveForm();
+      setWorkspaceStatus(
+        label
+          ? isProtocolPlannerActive()
+            ? `${label} 프로토콜의 예시 입력값을 적용했습니다.`
+            : `${label} 계산기에 예시 입력값을 적용했습니다.`
+          : isProtocolPlannerActive()
+            ? "예시값을 적용할 프로토콜을 찾지 못했습니다."
+            : "예시값을 넣을 활성 계산기를 찾지 못했습니다."
+      );
+      break;
+    }
+    case "clear-results": {
+      const count = clearResultCards();
+      setWorkspaceStatus(
+        count
+          ? isProtocolPlannerActive()
+            ? "생성된 프로토콜 초안을 초기화했습니다."
+            : `${count}개의 결과 카드를 초기 상태로 되돌렸습니다.`
+          : isProtocolPlannerActive()
+            ? "초기화할 프로토콜 초안이 없습니다."
+            : "초기화할 결과 카드가 없습니다."
+      );
+      break;
+    }
+    case "refresh-health": {
+      const health = await checkServerHealth();
+      setWorkspaceStatus(`서버 상태를 다시 확인했습니다. ${health.message}`);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+function setWorkspaceStatus(message) {
+  const statusNode = document.querySelector("[data-workspace-panel].active [data-workspace-status]");
+  if (statusNode) {
+    statusNode.textContent = message;
+  }
+}
+
+function focusActiveCalculator() {
+  const form = getCurrentPrimaryForm();
+  if (!form) {
+    return false;
+  }
+
+  const firstField = Array.from(form.querySelectorAll("input, select, textarea")).find(
+    (field) => !field.disabled && field.offsetParent !== null
+  );
+
+  scrollToElement(form.closest(".tab-panel") || form, "center");
+  firstField?.focus({ preventScroll: true });
+  return true;
+}
+
+function applyPlanPreset(presetKey) {
+  if (isProtocolPlannerActive()) {
+    return applyProtocolPreset(presetKey);
+  }
+
+  const form = getActiveForm();
+  if (!form) {
+    return "";
+  }
+
+  const formKey = form.dataset.formKind ? "metricAware" : form.dataset.calculator;
+  const preset = workspacePlanPresets[presetKey]?.[formKey];
+  if (!preset) {
+    return "";
+  }
+
+  setFormValues(form, preset);
+  if (form.dataset.formKind) {
+    applyMetricConfig(form);
+  } else {
+    applyFormTooltips(form);
+  }
+
+  return getActiveTabLabel();
+}
+
+function loadDemoValuesIntoActiveForm() {
+  if (isProtocolPlannerActive()) {
+    setProtocolCapability(activeProtocolCapability, true);
+    return protocolCapabilityConfigs[activeProtocolCapability]?.label || "";
+  }
+
+  const form = getActiveForm();
+  if (!form) {
+    return "";
+  }
+
+  if (form.dataset.formKind) {
+    applyExampleValues(form);
+    return getActiveTabLabel();
+  }
+
+  const defaults = basicDemoValues[form.dataset.calculator];
+  if (!defaults) {
+    return "";
+  }
+
+  setFormValues(form, defaults);
+  applyFormTooltips(form);
+  return getActiveTabLabel();
+}
+
+function clearResultCards() {
+  if (isProtocolPlannerActive()) {
+    if (!protocolOutput) {
+      return 0;
+    }
+
+    lastGeneratedProtocolPackage = null;
+    clearStoredProtocolPackage();
+    renderProtocolPlaceholder(protocolCapabilityConfigs[activeProtocolCapability]);
+    return 1;
+  }
+
+  let clearedCount = 0;
+
+  resultContainers.forEach((container) => {
+    if (!container.dataset.defaultHtml) {
+      return;
+    }
+
+    container.innerHTML = container.dataset.defaultHtml;
+    clearedCount += 1;
+  });
+
+  return clearedCount;
+}
+
+function buildWorkspaceSnapshot() {
+  const title = normalizeWhitespace(
+    document.querySelector("h1")?.textContent || document.querySelector(".workspace-title")?.textContent || document.title
+  );
+  const activeTrack = getActiveTabLabel() || "활성 트랙 미확인";
+  const statusText = normalizeWhitespace(serverStatus?.textContent || "서버 상태 미확인");
+  const form = getCurrentPrimaryForm();
+  const inputs = form ? buildInputSnapshot(form) : [];
+  const results = buildResultSnapshot();
+
+  return [
+    `[${title}]`,
+    `활성 트랙: ${activeTrack}`,
+    `서버 상태: ${statusText}`,
+    "",
+    "현재 입력값",
+    ...(inputs.length ? inputs : ["- 입력값 없음"]),
+    "",
+    "현재 결과",
+    ...(results.length ? results : ["- 계산 결과 없음"]),
+  ].join("\n");
+}
+
+function buildInputSnapshot(form) {
+  return Array.from(form.querySelectorAll("label"))
+    .filter((label) => label.offsetParent !== null)
+    .map((label) => {
+      const field = label.querySelector("input, select, textarea");
+      if (!field || field.disabled) {
+        return "";
+      }
+
+      const labelText = getFieldLabelText(label, field);
+      const value =
+        field.tagName === "SELECT"
+          ? field.options[field.selectedIndex]?.textContent?.trim() || field.value
+          : field.value;
+
+      return `- ${labelText}: ${normalizeWhitespace(value)}`;
+    })
+    .filter(Boolean);
+}
+
+function buildResultSnapshot() {
+  if (isProtocolPlannerActive()) {
+    const text = String(protocolOutput?.innerText || "")
+      .split(/\r?\n/)
+      .map((line) => normalizeWhitespace(line))
+      .filter(Boolean)
+      .slice(0, 8);
+    return text.map((line) => `- ${line}`);
+  }
+
+  const container = getActiveResultContainer();
+  if (!container) {
+    return [];
+  }
+
+  const headline =
+    container.querySelector(".result-text")?.textContent ||
+    container.querySelector(".error-text")?.textContent ||
+    container.querySelector(".result-placeholder")?.textContent ||
+    "";
+  const summaryItems = Array.from(container.querySelectorAll(".summary-card")).map((card) => {
+    const label = normalizeWhitespace(card.querySelector(".summary-label")?.textContent || "");
+    const value = normalizeWhitespace(card.querySelector(".summary-value")?.textContent || "");
+    return label && value ? `- ${label}: ${value}` : "";
+  });
+
+  return [headline ? `- ${normalizeWhitespace(headline)}` : "", ...summaryItems.filter(Boolean)].filter(Boolean);
+}
+
+function getCurrentPrimaryForm() {
+  if (isProtocolPlannerActive()) {
+    return protocolForm;
+  }
+
+  return getActiveForm();
+}
+
+function getActiveForm() {
+  return document.querySelector(".tab-panel.active .calc-form");
+}
+
+function getActiveResultContainer() {
+  const calculator = getActiveForm()?.dataset.calculator;
+  if (!calculator) {
+    return null;
+  }
+
+  return document.querySelector(`[data-result="${calculator}"]`);
+}
+
+function getActiveTabLabel() {
+  if (isProtocolPlannerActive()) {
+    return protocolCapabilityConfigs[activeProtocolCapability]?.label || "Protocol Planning";
+  }
+
+  return normalizeWhitespace(document.querySelector(".tab-button.active")?.textContent || "");
+}
+
+function isProtocolPlannerActive() {
+  return Boolean(protocolPlanningView && !protocolPlanningView.hidden);
+}
+
+function getSelectValueLabel(form, fieldName) {
+  const field = form.elements.namedItem(fieldName);
+  if (!field || field.tagName !== "SELECT") {
+    return "";
+  }
+
+  return normalizeWhitespace(field.options[field.selectedIndex]?.textContent || field.value);
+}
+
+function setFormValues(form, values) {
+  Object.entries(values).forEach(([key, value]) => {
+    const field = form.elements.namedItem(key);
+    if (field) {
+      field.value = String(value);
+    }
+  });
+}
+
+function getFieldLabelText(label, field) {
+  const inlineLabel = label.querySelector("span[data-label-key]")?.textContent?.trim();
+  if (inlineLabel) {
+    return inlineLabel;
+  }
+
+  const directTextNode = Array.from(label.childNodes).find(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+  );
+  return normalizeWhitespace(directTextNode?.textContent || field.name);
+}
+
+function normalizeWhitespace(value) {
+  return String(value).replace(/\s+/g, " ").trim();
+}
+
+function scrollToElement(element, block = "start") {
+  if (!element) {
+    return false;
+  }
+
+  element.scrollIntoView({
+    behavior: "smooth",
+    block,
+  });
+  return true;
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch (error) {
+      // Fallback below for browsers that block async clipboard access.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "readonly");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  const copied = document.execCommand("copy");
+  textarea.remove();
+
+  if (!copied) {
+    throw new Error("copy failed");
+  }
 }
 
 function applyMetricConfig(form) {
@@ -1007,6 +3232,7 @@ function buildResultContext(form, inputs, result) {
     noteKo: "",
     noteEn: "",
   };
+  const guidancePlanning = buildGuidancePlanningModel(inputs, result.metrics || {});
 
   return {
     formKind,
@@ -1015,7 +3241,371 @@ function buildResultContext(form, inputs, result) {
     meta,
     inputs,
     result,
+    guidancePlanning,
   };
+}
+
+function buildGuidancePlanningModel(inputs, metrics) {
+  const baseTarget = getGuidancePlanningBaseTarget(metrics);
+  if (!baseTarget) {
+    return null;
+  }
+
+  const designEffect = Math.max(Number(inputs.designEffect) || 1, 1);
+  const subgroupCount = Math.max(Number(inputs.subgroupCount) || 1, 1);
+  const minCasesPerSubgroup = Math.max(Number(inputs.minCasesPerSubgroup) || 0, 0);
+  const referenceReviewFailureRate = clampNumber(Number(inputs.referenceReviewFailureRate) || 0, 0, 0.9);
+  const baseCases = Math.ceil(baseTarget.value);
+  const clusterAdjustedCases = Math.ceil(baseCases * designEffect);
+  const analyzableFraction = Math.max(1 - referenceReviewFailureRate, 0.05);
+  const referenceAdjustedCases = Math.ceil(clusterAdjustedCases / analyzableFraction);
+  const subgroupFloorCases = minCasesPerSubgroup > 0 ? subgroupCount * minCasesPerSubgroup : 0;
+  const finalPlanningCases = Math.max(referenceAdjustedCases, subgroupFloorCases);
+  const notes = [
+    "Validation data should remain independent or sequestered from development and tuning data.",
+    "Pre-specify subgroup coverage across clinically important patient, site, device, and acquisition strata.",
+    "Document missing, equivocal, or failed reference-standard reviews before database lock so analyzable counts are preserved.",
+  ];
+
+  if (designEffect > 1) {
+    notes.unshift("Design effect increases the target to cover reader, site, scan, or frame-level clustering.");
+  }
+
+  if (referenceReviewFailureRate > 0) {
+    notes.unshift("Reference-standard attrition inflates the target so the final locked dataset still meets the analyzable-case goal.");
+  }
+
+  if (subgroupFloorCases > referenceAdjustedCases) {
+    notes.unshift("The subgroup floor dominates the final planning target, which means representation requirements are stricter than the base statistical estimate.");
+  }
+
+  return {
+    baseLabel: baseTarget.label,
+    baseCases,
+    designEffect,
+    subgroupCount,
+    minCasesPerSubgroup,
+    referenceReviewFailureRate,
+    clusterAdjustedCases,
+    referenceAdjustedCases,
+    subgroupFloorCases,
+    finalPlanningCases,
+    incrementalCases: Math.max(finalPlanningCases - baseCases, 0),
+    notes,
+  };
+}
+
+function getGuidancePlanningBaseTarget(metrics) {
+  const candidates = [
+    ["adjustedTotalCases", "Base target enrollment"],
+    ["adjustedCases", "Base target enrollment"],
+    ["estimatedTotalCases", "Base evaluable total"],
+    ["requiredCases", "Base evaluable total"],
+  ];
+
+  for (const [key, label] of candidates) {
+    const value = Number(metrics[key]);
+    if (Number.isFinite(value) && value > 0) {
+      return { key, label, value };
+    }
+  }
+
+  return null;
+}
+
+function renderGuidancePlanningOverlay(context) {
+  const planning = context.guidancePlanning;
+  if (!planning) {
+    return "";
+  }
+
+  const cards = [
+    { label: planning.baseLabel, value: formatCount(planning.baseCases) },
+    { label: "Cluster-adjusted target", value: formatCount(planning.clusterAdjustedCases) },
+    { label: "Reference-adjusted target", value: formatCount(planning.referenceAdjustedCases) },
+    { label: "Subgroup floor", value: planning.subgroupFloorCases ? formatCount(planning.subgroupFloorCases) : "Not applied" },
+    { label: "Final planning target", value: formatCount(planning.finalPlanningCases) },
+  ]
+    .map(
+      (item) => `
+        <div class="summary-card">
+          <p class="summary-label">${escapeHtml(item.label)}</p>
+          <p class="summary-value">${escapeHtml(item.value)}</p>
+        </div>
+      `
+    )
+    .join("");
+
+  const notes = planning.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+  return `
+    <div class="result-subsection">
+      <p class="result-subtitle">Guidance-aligned planning overlay</p>
+      <p class="result-meta">The base statistical sample size is stress-tested with clustering, reference-review attrition, and subgroup minimum coverage drawn from the AI device guidance themes.</p>
+      <div class="summary-grid">${cards}</div>
+      <ul class="result-list">${notes}</ul>
+    </div>
+  `;
+}
+
+function buildEnhancedRegulatoryTextSafe(context) {
+  const { categoryLabel, meta, inputs, result, guidancePlanning } = context;
+  const counts = buildRequirementPhrase(result.metrics || {});
+  const threshold = result.metrics?.nonInferiorityThreshold;
+  const method = buildMethodPresentation(context);
+  const thresholdText = threshold !== undefined ? formatDisplayNumber(threshold) : "-";
+  const dropoutText = formatPercentValue(inputs.dropout);
+
+  const koParts = [
+    `본 ${categoryLabel} 성능평가 샘플수는 ${meta.endpointLabelKo}를 주요 endpoint로 두고, benchmark ${formatDisplayNumber(inputs.benchmarkValue)}와 non-inferiority margin ${formatDisplayNumber(inputs.nonInferiorityMargin)}을 기준으로 산정하였다.`,
+    `통계 방법은 ${method.nameKo}를 사용했고, one-sided alpha ${formatDisplayNumber(inputs.alpha)}와 power ${formatPercentValue(inputs.power)}를 적용하였다.`,
+    `기본 계산 결과 ${counts.koRequired}이며, 예상 탈락률 ${dropoutText}를 반영한 목표 모집 수는 ${counts.koAdjusted}로 설정하였다.`,
+    `적용된 non-inferiority threshold는 ${thresholdText}이며, ${meta.noteKo}`,
+  ];
+
+  const enParts = [
+    `The sample size for the ${categoryLabel.toLowerCase()} performance evaluation was determined using ${meta.endpointLabelEn} as the primary endpoint, with a pre-specified benchmark of ${formatDisplayNumber(inputs.benchmarkValue)} and a non-inferiority margin of ${formatDisplayNumber(inputs.nonInferiorityMargin)}.`,
+    `A ${method.nameEn} with a one-sided alpha of ${formatDisplayNumber(inputs.alpha)} and ${formatPercentValue(inputs.power)} power was applied.`,
+    `The base calculation showed that ${counts.enRequired}, and the target enrollment was set at ${counts.enAdjusted} after allowing for an anticipated dropout rate of ${dropoutText}.`,
+    `The resulting non-inferiority threshold was ${thresholdText}. ${meta.noteEn}`,
+  ];
+
+  if (guidancePlanning) {
+    const subgroupTextKo = guidancePlanning.subgroupFloorCases
+      ? `${formatCount(guidancePlanning.subgroupFloorCases)} cases as a subgroup floor`
+      : "no subgroup floor";
+    const subgroupTextEn = guidancePlanning.subgroupFloorCases
+      ? `a subgroup floor of ${formatCount(guidancePlanning.subgroupFloorCases)} cases`
+      : "no subgroup floor";
+
+    koParts.push(
+      `추가 planning overlay에서는 design effect ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, reference standard failure rate ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, ${subgroupTextKo}를 반영하여 최종 권고 모집 수를 ${formatCount(guidancePlanning.finalPlanningCases)}건으로 상향 또는 유지하였다.`
+    );
+    enParts.push(
+      `In a guidance-aligned planning overlay, the enrollment target was stress-tested with a design effect of ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, a reference-standard failure rate of ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, and ${subgroupTextEn}, yielding a final recommended planning target of ${formatCount(guidancePlanning.finalPlanningCases)} cases.`
+    );
+  }
+
+  return {
+    ko: koParts.join(" "),
+    en: enParts.join(" "),
+  };
+}
+
+function buildEnhancedRegulatoryText(context) { return buildEnhancedRegulatoryTextSafe(context); } /*
+  const { categoryLabel, meta, inputs, result, guidancePlanning } = context;
+  const counts = buildRequirementPhrase(result.metrics || {});
+  const threshold = result.metrics?.nonInferiorityThreshold;
+  const method = buildMethodPresentation(context);
+  const thresholdText = threshold !== undefined ? formatDisplayNumber(threshold) : "-";
+  const dropoutText = formatPercentValue(inputs.dropout);
+
+  const koParts = [
+    `본 ${categoryLabel} 성능평가 샘플수는 ${meta.endpointLabelKo}를 주요 endpoint로 두고, benchmark ${formatDisplayNumber(inputs.benchmarkValue)}와 non-inferiority margin ${formatDisplayNumber(inputs.nonInferiorityMargin)}을 기준으로 산정하였다.`,
+    `통계 방법은 ${method.nameKo}를 사용했고, one-sided alpha ${formatDisplayNumber(inputs.alpha)}와 power ${formatPercentValue(inputs.power)}를 적용하였다.`,
+    `기본 계산 결과 ${counts.koRequired}이며, 예상 탈락률 ${dropoutText}를 반영한 목표 모집 수는 ${counts.koAdjusted}로 설정하였다.`,
+    `적용된 non-inferiority threshold는 ${thresholdText}이며, ${meta.noteKo}`,
+  ];
+
+  const enParts = [
+    `The sample size for the ${categoryLabel.toLowerCase()} performance evaluation was determined using ${meta.endpointLabelEn} as the primary endpoint, with a pre-specified benchmark of ${formatDisplayNumber(inputs.benchmarkValue)} and a non-inferiority margin of ${formatDisplayNumber(inputs.nonInferiorityMargin)}.`,
+    `A ${method.nameEn} with a one-sided alpha of ${formatDisplayNumber(inputs.alpha)} and ${formatPercentValue(inputs.power)} power was applied.`,
+    `The base calculation showed that ${counts.enRequired}, and the target enrollment was set at ${counts.enAdjusted} after allowing for an anticipated dropout rate of ${dropoutText}.`,
+    `The resulting non-inferiority threshold was ${thresholdText}. ${meta.noteEn}`,
+  ];
+
+  if (guidancePlanning) { /*
+    const subgroupTextKo = guidancePlanning.subgroupFloorCases
+      ? `${formatCount(guidancePlanning.subgroupFloorCases)}건 subgroup floor`
+      : "subgroup floor 미적용";
+    const subgroupTextEn = guidancePlanning.subgroupFloorCases
+      ? `a subgroup floor of ${formatCount(guidancePlanning.subgroupFloorCases)} cases`
+      : "no subgroup floor";
+
+    koParts.push(
+      `추가 planning overlay에서는 design effect ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, reference standard failure rate ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, ${subgroupTextKo}를 반영하여 최종 권고 모집 수를 ${formatCount(guidancePlanning.finalPlanningCases)}건으로 상향 또는 유지하였다.`
+    );
+    enParts.push(
+      `In a guidance-aligned planning overlay, the enrollment target was stress-tested with a design effect of ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, a reference-standard failure rate of ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, and ${subgroupTextEn}, yielding a final recommended planning target of ${formatCount(guidancePlanning.finalPlanningCases)} cases.`
+    );
+  }
+
+  legacy separator
+  if (guidancePlanning) { /*
+    const subgroupTextKo = guidancePlanning.subgroupFloorCases
+      ? `${formatCount(guidancePlanning.subgroupFloorCases)}건 subgroup floor`
+      : "subgroup floor 미적용";
+    const subgroupTextEn = guidancePlanning.subgroupFloorCases
+      ? `a subgroup floor of ${formatCount(guidancePlanning.subgroupFloorCases)} cases`
+      : "no subgroup floor";
+
+    koParts.push(
+      `추가 planning overlay에서는 design effect ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, reference standard failure rate ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, ${subgroupTextKo}를 반영하여 최종 권고 모집 수를 ${formatCount(guidancePlanning.finalPlanningCases)}건으로 상향 또는 유지하였다.`
+    );
+    enParts.push(
+      `In a guidance-aligned planning overlay, the enrollment target was stress-tested with a design effect of ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, a reference-standard failure rate of ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, and ${subgroupTextEn}, yielding a final recommended planning target of ${formatCount(guidancePlanning.finalPlanningCases)} cases.`
+    );
+  }
+
+  legacy separator
+  if (guidancePlanning) {
+    const subgroupTextKo = guidancePlanning.subgroupFloorCases
+      ? `${formatCount(guidancePlanning.subgroupFloorCases)} cases as a subgroup floor`
+      : "no subgroup floor";
+    const subgroupTextEn = guidancePlanning.subgroupFloorCases
+      ? `a subgroup floor of ${formatCount(guidancePlanning.subgroupFloorCases)} cases`
+      : "no subgroup floor";
+
+    koParts.push(
+      `추가 planning overlay에서는 design effect ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, reference standard failure rate ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, ${subgroupTextKo}를 반영하여 최종 권고 모집 수를 ${formatCount(guidancePlanning.finalPlanningCases)}건으로 상향 또는 유지하였다.`
+    );
+    enParts.push(
+      `In a guidance-aligned planning overlay, the enrollment target was stress-tested with a design effect of ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, a reference-standard failure rate of ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, and ${subgroupTextEn}, yielding a final recommended planning target of ${formatCount(guidancePlanning.finalPlanningCases)} cases.`
+    );
+  }
+
+  return {
+    ko: koParts.join(" "),
+    en: enParts.join(" "),
+  };
+}
+
+*/
+
+function buildEnhancedParameterRows(context) {
+  const { categoryLabel, meta, inputs, result, guidancePlanning } = context;
+  const rows = [
+    {
+      item: "Category",
+      value: categoryLabel,
+      note: "AI performance domain under evaluation",
+    },
+    {
+      item: "Primary endpoint",
+      value: meta.metricLabel,
+      note: meta.endpointLabelKo,
+    },
+    {
+      item: "Expected value",
+      value: formatDisplayNumber(inputs.expectedValue),
+      note: "Planned AI performance to be demonstrated in validation",
+    },
+    {
+      item: "Benchmark",
+      value: formatDisplayNumber(inputs.benchmarkValue),
+      note: "Pre-specified benchmark or comparator performance",
+    },
+    {
+      item: "NI margin",
+      value: formatDisplayNumber(inputs.nonInferiorityMargin),
+      note: "Clinically acceptable performance loss boundary",
+    },
+    {
+      item: "One-sided alpha",
+      value: formatDisplayNumber(inputs.alpha),
+      note: "Type I error rate for the non-inferiority test",
+    },
+    {
+      item: "Power",
+      value: formatPercentValue(inputs.power),
+      note: "Target probability of detecting non-inferiority",
+    },
+    {
+      item: "Dropout rate",
+      value: formatPercentValue(inputs.dropout),
+      note: "Expected loss before the final analyzable dataset",
+    },
+  ];
+
+  if (inputs.positiveCaseRate !== undefined) {
+    rows.push({
+      item: "Positive-case rate",
+      value: formatPercentValue(inputs.positiveCaseRate),
+      note: "Case-mix assumption used for positive-case driven planning",
+    });
+  }
+
+  if (inputs.predictedNegativeRate !== undefined) {
+    rows.push({
+      item: "Predicted-negative rate",
+      value: formatPercentValue(inputs.predictedNegativeRate),
+      note: "Planning assumption used when the endpoint depends on predicted negatives",
+    });
+  }
+
+  if (inputs.standardDeviation !== undefined) {
+    rows.push({
+      item: "Standard deviation",
+      value: formatDisplayNumber(inputs.standardDeviation),
+      note: "Dispersion estimate from pilot data or bootstrap resampling",
+    });
+  }
+
+  if (inputs.lesionsPerPositiveCase !== undefined) {
+    rows.push({
+      item: "Lesions per positive case",
+      value: formatDisplayNumber(inputs.lesionsPerPositiveCase),
+      note: "Used when lesion-level sensitivity is converted to case-level planning",
+    });
+  }
+
+  if (inputs.designEffect !== undefined) {
+    rows.push({
+      item: "Design effect",
+      value: formatDisplayNumber(inputs.designEffect, 2),
+      note: "Cluster inflation for site, reader, exam, or frame-level dependence",
+    });
+  }
+
+  if (inputs.subgroupCount !== undefined) {
+    rows.push({
+      item: "Protected subgroups",
+      value: formatCount(inputs.subgroupCount),
+      note: "Number of key subgroups planned for separate coverage review",
+    });
+  }
+
+  if (inputs.minCasesPerSubgroup !== undefined) {
+    rows.push({
+      item: "Minimum cases per subgroup",
+      value: formatCount(inputs.minCasesPerSubgroup),
+      note: "Floor applied to preserve minimum subgroup analyzability",
+    });
+  }
+
+  if (inputs.referenceReviewFailureRate !== undefined) {
+    rows.push({
+      item: "Reference review failure rate",
+      value: formatPercentValue(inputs.referenceReviewFailureRate),
+      note: "Loss due to missing, equivocal, or failed truth adjudication",
+    });
+  }
+
+  if (result.metrics?.nonInferiorityThreshold !== undefined) {
+    rows.push({
+      item: "NI threshold",
+      value: formatDisplayNumber(result.metrics.nonInferiorityThreshold),
+      note: "Benchmark adjusted by the non-inferiority margin",
+    });
+  }
+
+  if (result.metrics?.rawSample !== undefined) {
+    rows.push({
+      item: "Raw sample size",
+      value: formatDisplayNumber(result.metrics.rawSample, 4),
+      note: "Direct formula output before rounding and operational inflation",
+    });
+  }
+
+  if (guidancePlanning) {
+    rows.push({
+      item: "Guidance planning target",
+      value: formatCount(guidancePlanning.finalPlanningCases),
+      note: "Final recommendation after clustering, review attrition, and subgroup floors",
+    });
+  }
+
+  return rows;
 }
 
 function renderSummaryMetrics(metrics) {
@@ -1061,7 +3651,7 @@ function renderSummaryMetrics(metrics) {
 }
 
 function renderRegulatoryWriting(context) {
-  const regulatoryText = buildRegulatoryText(context);
+  const regulatoryText = buildEnhancedRegulatoryText(context);
   return `
     <section class="result-section">
       <h4 class="result-section-title">인허가 문서 예시 문장 / Regulatory Writing Example</h4>
@@ -1081,7 +3671,8 @@ function renderRegulatoryWriting(context) {
 
 function renderTheorySection(context) {
   const method = buildMethodPresentation(context);
-  const parameterRows = buildParameterRows(context)
+  const planningOverlay = renderGuidancePlanningOverlay(context);
+  const parameterRows = buildEnhancedParameterRows(context)
     .map(
       (row) => `
         <tr>
@@ -1128,6 +3719,7 @@ function renderTheorySection(context) {
           <tbody>${parameterRows}</tbody>
         </table>
       </div>
+      ${planningOverlay}
       <div class="result-subsection">
         <p class="result-subtitle">가정 / Assumptions</p>
         <ul class="result-list">${assumptions}</ul>
@@ -1532,6 +4124,10 @@ function computeAxisRange(values) {
   }
 
   return { min, max };
+}
+
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
 function formatMetricValue(key, value) {
