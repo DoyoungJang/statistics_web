@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protocol Planning Study Checklist</title>
+  <script>
+    (function () {
+      try {
+        var theme = window.localStorage.getItem("statistics-web:theme");
+        if (theme) {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        // Ignore theme bootstrap failures.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page-protocol-checklist">
@@ -20,10 +32,19 @@
         <p class="workspace-kicker">Protocol Execution Companion</p>
         <p class="workspace-title">Study Execution Checklist Workspace</p>
       </div>
-      <div class="workspace-meta">
-        <a class="workspace-chip is-accent" href="/protocol-planning">Back To Protocol Planning</a>
-        <button class="workspace-chip" type="button" data-checklist-copy>Checklist Copy</button>
-        <button class="workspace-chip is-muted" type="button" data-checklist-reset>Progress Reset</button>
+      <div class="workspace-bar-actions">
+        <div class="theme-switcher" aria-label="디자인 선택">
+          <span class="theme-switcher-label">Design</span>
+          <div class="theme-switcher-options" role="group" aria-label="디자인 테마">
+            <button class="theme-button" type="button" data-theme-option="executive-classic" aria-pressed="false">Executive</button>
+            <button class="theme-button" type="button" data-theme-option="neo-dark" aria-pressed="false">Neo Dark</button>
+          </div>
+        </div>
+        <div class="workspace-meta">
+          <a class="workspace-chip is-accent" href="/protocol-planning">Back To Protocol Planning</a>
+          <button class="workspace-chip" type="button" data-checklist-copy>Checklist Copy</button>
+          <button class="workspace-chip is-muted" type="button" data-checklist-reset>Progress Reset</button>
+        </div>
       </div>
     </div>
 

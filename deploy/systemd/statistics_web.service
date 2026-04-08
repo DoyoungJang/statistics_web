@@ -1,0 +1,19 @@
+[Unit]
+Description=Medical Device Statistics Web
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/statistics_web
+EnvironmentFile=/opt/statistics_web/deploy/env/statistics_web.env
+ExecStart=/opt/statistics_web/.venv/bin/gunicorn -c /opt/statistics_web/gunicorn.conf.py wsgi:application
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGQUIT
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

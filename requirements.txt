@@ -1,2 +1,2 @@
-# This project currently uses only Python's standard library.
-# Add external packages here when the server grows.
+# Production WSGI server
+gunicorn>=23.0.0; platform_system != "Windows"

@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI 통계 계산 예시</title>
+  <script>
+    (function () {
+      try {
+        var theme = window.localStorage.getItem("statistics-web:theme");
+        if (theme) {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        // Ignore theme bootstrap failures.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page-ai-stat-examples">
@@ -20,15 +32,23 @@
         <p class="workspace-kicker">Strategy Analytics Suite</p>
         <p class="workspace-title">AI Statistics Example Workspace</p>
       </div>
-      <div class="workspace-meta" aria-label="워크스페이스 기능">
+      <div class="workspace-bar-actions">
+        <div class="theme-switcher" aria-label="디자인 선택">
+          <span class="theme-switcher-label">Design</span>
+          <div class="theme-switcher-options" role="group" aria-label="디자인 테마">
+            <button class="theme-button" type="button" data-theme-option="executive-classic" aria-pressed="false">Executive</button>
+            <button class="theme-button" type="button" data-theme-option="neo-dark" aria-pressed="false">Neo Dark</button>
+          </div>
+        </div>
+        <div class="workspace-meta" aria-label="워크스페이스 기능">
         <button class="workspace-chip is-accent active" type="button" data-workspace-mode="executive" aria-pressed="true">
-          Executive Tooling
+          요약/이동
         </button>
         <button class="workspace-chip" type="button" data-workspace-mode="protocol" aria-pressed="false">
-          Protocol Planning
+          계획 적용
         </button>
         <button class="workspace-chip is-muted" type="button" data-workspace-mode="pilot" aria-pressed="false">
-          Internal Pilot
+          예시/초기화
         </button>
       </div>
     </div>
@@ -36,7 +56,7 @@
     <section class="workspace-tools" aria-label="워크스페이스 도구">
       <article class="workspace-tool-panel active" data-workspace-panel="executive">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Executive Tooling</p>
+          <p class="workspace-tool-kicker">요약/이동</p>
           <h2>권역별 예시를 바로 비교하고 복사</h2>
           <p>현재 선택한 기능 기준으로 FDA, 식약처, CE 관점의 예시 통계 프레임을 생성하고, 결과 초안을 바로 복사하거나 소스 요약 구역으로 이동합니다.</p>
         </div>
@@ -52,7 +72,7 @@
 
       <article class="workspace-tool-panel" data-workspace-panel="protocol">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Protocol Planning</p>
+          <p class="workspace-tool-kicker">계획 적용</p>
           <h2>기본 가정과 보수적 가정 빠르게 전환</h2>
           <p>현재 기능에 맞는 baseline 예시와 high-assurance 예시를 불러와서 드롭아웃, clustering, subgroup coverage를 빠르게 바꿔볼 수 있습니다.</p>
         </div>
@@ -68,7 +88,7 @@
 
       <article class="workspace-tool-panel" data-workspace-panel="pilot">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Internal Pilot</p>
+          <p class="workspace-tool-kicker">예시/초기화</p>
           <h2>데모 가정 로드와 결과 초기화</h2>
           <p>기능별 기본 데모 값을 다시 불러오거나 현재 결과를 비우고 처음부터 예시를 다시 생성할 수 있습니다.</p>
         </div>
@@ -263,6 +283,65 @@
         <div class="protocol-placeholder">
           <p class="protocol-placeholder-title">AI 통계 예시를 생성해보세요</p>
           <p class="result-meta">기능과 규제권역을 선택하고 “통계 예시 생성”을 누르면 capability-specific example design pack이 아래에 나타납니다.</p>
+        </div>
+      </section>
+
+      <section class="info-card protocol-glossary-card" aria-label="AI 통계 계산 예시 전문 용어 설명">
+        <div class="section-heading">
+          <p class="section-kicker">Glossary</p>
+          <h2>AI 통계 계산 예시 전문 용어 설명</h2>
+          <p>FDA, 식약처, CE 관점의 AI 통계 예시를 읽을 때 자주 나오는 규제, 검증, 샘플 수 계획 용어를 한국어로 정리했습니다.</p>
+        </div>
+
+        <div class="protocol-glossary-grid">
+          <article class="protocol-glossary-item">
+            <h3>Benchmark</h3>
+            <p>AI가 비교해야 하는 기준 성능입니다. 기존 제품, 전문가 판독, 문헌 수치, 내부 목표값 등이 benchmark가 될 수 있습니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Regulatory Lens</h3>
+            <p>같은 기능이라도 FDA, 식약처, CE가 무엇을 중요하게 보는지 정리한 시각입니다. 예시 탭에서는 이 관점을 문장과 점검 포인트로 보여줍니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Acceptance Criteria</h3>
+            <p>시험 성공 여부를 판단하는 사전 기준입니다. 보통 primary endpoint의 신뢰구간 하한이 목표 기준을 넘는지로 정의합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Validation Dataset Independence</h3>
+            <p>최종 검증 데이터가 학습 또는 튜닝 데이터와 겹치지 않아야 한다는 원칙입니다. 겹치면 실제보다 성능이 좋아 보일 수 있습니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>External Validation</h3>
+            <p>개발에 쓰지 않은 외부 기관 또는 다른 시기의 데이터로 성능을 검증하는 것입니다. 일반화 가능성을 보여줄 때 매우 중요합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Design Effect</h3>
+            <p>site, reader, lesion, frame처럼 데이터가 서로 독립적이지 않을 때 필요한 표본 수를 더 늘려주는 보정 계수입니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Protected Subgroup</h3>
+            <p>성별, 연령, 장비, 중증도처럼 별도로 성능을 확인해야 하는 하위 집단입니다. 규제 검토에서 자주 강조되는 항목입니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Reference Review Failure Rate</h3>
+            <p>정답 판정이 실패하거나 불확실해져 최종 분석에서 제외될 가능성을 의미합니다. 실제 모집 수를 더 늘려야 할 근거가 됩니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Locked Model</h3>
+            <p>검증 이후 모델이 바뀌지 않는다고 가정하는 운영 방식입니다. 변경이 생기면 별도 검증이나 새로운 제출 전략이 필요할 수 있습니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>PCCP</h3>
+            <p>Predetermined Change Control Plan의 약자입니다. AI가 이후 어떤 범위 안에서 업데이트될 수 있는지와 검증 방법을 미리 정하는 계획입니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Human Factors Validation</h3>
+            <p>사용자가 AI 표시를 실제 환경에서 올바르게 이해하고 사용하는지 검증하는 절차입니다. 실시간 AI에서는 특히 중요합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Real-world Data Bridge</h3>
+            <p>실사용 환경 데이터를 이용해 기존 검증 결과와 실제 운영 환경 사이를 연결하는 접근입니다. 데이터 적합성과 편향 관리가 핵심입니다.</p>
+          </article>
         </div>
       </section>
     </section>

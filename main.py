@@ -149,6 +149,35 @@ def solve_one_sample_mean_noninferiority(expected_mean, benchmark_mean, ni_margi
     }
 
 
+def solve_bland_altman_agreement(expected_mean_difference, standard_deviation, max_allowed_difference, alpha, power):
+    assert_positive(standard_deviation, "차이값 표준편차는 0보다 커야 합니다.")
+    assert_positive(max_allowed_difference, "최대 허용 차이는 0보다 커야 합니다.")
+    assert_between_exclusive(alpha, 0, 0.5, "Bland-Altman alpha는 0과 0.5 사이여야 합니다.")
+    assert_between_exclusive(power, 0, 1, "검정력은 0과 1 사이여야 합니다.")
+
+    expected_upper_loa = expected_mean_difference + 1.96 * standard_deviation
+    expected_lower_loa = expected_mean_difference - 1.96 * standard_deviation
+    critical_loa = max(abs(expected_upper_loa), abs(expected_lower_loa))
+    agreement_gap = max_allowed_difference - critical_loa
+    if agreement_gap <= 0:
+        raise ValidationError("최대 허용 차이는 |평균 차이| + 1.96 × SD보다 커야 합니다.")
+
+    z_alpha = NormalDist().inv_cdf(1 - alpha / 2)
+    z_beta = NormalDist().inv_cdf(power)
+    raw_sample = 3 * (((z_alpha + z_beta) * standard_deviation) / agreement_gap) ** 2
+
+    return {
+        "raw_sample": raw_sample,
+        "required_sample": math.ceil(raw_sample),
+        "z_alpha": z_alpha,
+        "z_beta": z_beta,
+        "expected_upper_loa": expected_upper_loa,
+        "expected_lower_loa": expected_lower_loa,
+        "critical_loa": critical_loa,
+        "agreement_gap": agreement_gap,
+    }
+
+
 def auc_variance_constant(auc_value, positive_case_rate):
     assert_between_exclusive(auc_value, 0, 1, "AUC는 0과 1 사이여야 합니다.")
     assert_between_exclusive(positive_case_rate, 0, 1, "평가셋 내 양성 케이스 비율은 0과 1 사이여야 합니다.")
@@ -981,6 +1010,52 @@ def calculate_ai_measurement(inputs):
             },
         }
 
+    if metric == "bland_altman":
+        expected_mean_difference = parse_float(inputs.get("expectedValue"), "예상 평균 차이")
+        max_allowed_difference = parse_float(inputs.get("benchmarkValue"), "최대 허용 차이")
+        standard_deviation = parse_float(inputs.get("standardDeviation"), "차이값 표준편차")
+        result = solve_bland_altman_agreement(
+            expected_mean_difference,
+            standard_deviation,
+            max_allowed_difference,
+            alpha,
+            power,
+        )
+        required_cases = result["required_sample"]
+        adjusted_cases = adjust_for_dropout(required_cases, dropout)
+        confidence_level = 1 - alpha
+        return {
+            "headline": (
+                f"Bland-Altman agreement 판단에 필요한 최소 paired 평가 케이스 수는 {format_number(required_cases)}건이며, "
+                f"탈락률 반영 모집 목표수는 {format_number(adjusted_cases)}건입니다."
+            ),
+            "details": [
+                "Bland-Altman에서는 paired difference의 평균과 표준편차를 사용해 upper limit of agreement의 신뢰구간이 허용 차이 안에 들어오도록 계획했습니다.",
+                (
+                    f"적용값: 예상 평균 차이 = {expected_mean_difference:.3f}, 차이값 SD = {standard_deviation:.3f}, "
+                    f"최대 허용 차이 Δ = {max_allowed_difference:.3f}, two-sided alpha = {alpha:.3f}, power = {power:.0%}"
+                ),
+                (
+                    f"예상 upper LoA = {result['expected_upper_loa']:.3f}, lower LoA = {result['expected_lower_loa']:.3f}, "
+                    f"worst-case |LoA| = {result['critical_loa']:.3f}, agreement gap = {result['agreement_gap']:.3f}, "
+                    f"LoA 신뢰수준 = {confidence_level:.0%}, zα/2 = {result['z_alpha']:.3f}, zβ = {result['z_beta']:.3f}"
+                ),
+                f"원계산값 = {result['raw_sample']:.2f}",
+                "이 계산은 Bland-Altman LoA 표준오차를 sqrt(3s²/n)로 두는 근사식 기반 planning 값입니다.",
+            ],
+            "metrics": {
+                "requiredCases": required_cases,
+                "adjustedCases": adjusted_cases,
+                "rawSample": round(result["raw_sample"], 4),
+                "expectedBias": round(expected_mean_difference, 4),
+                "expectedUpperLoA": round(result["expected_upper_loa"], 4),
+                "expectedLowerLoA": round(result["expected_lower_loa"], 4),
+                "criticalLoA": round(result["critical_loa"], 4),
+                "maxAllowedDifference": round(max_allowed_difference, 4),
+                "agreementGap": round(result["agreement_gap"], 4),
+            },
+        }
+
     raise ValidationError("지원하지 않는 Measurement 지표입니다.")
 
 
@@ -993,6 +1068,79 @@ CALCULATORS = {
     "ai-detection": calculate_ai_detection,
     "ai-measurement": calculate_ai_measurement,
 }
+
+
+def build_response(status_code, content_type, body):
+    return status_code, [("Content-Type", content_type), ("Content-Length", str(len(body)))], body
+
+
+def build_json_response(status_code, payload):
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    return build_response(status_code, "application/json; charset=utf-8", body)
+
+
+def build_static_file_response(relative_name):
+    file_path = BASE_DIR / relative_name
+    if not file_path.exists():
+        return build_json_response(HTTPStatus.NOT_FOUND, {"error": "정적 파일을 찾을 수 없습니다."})
+
+    content_type, _ = mimetypes.guess_type(file_path.name)
+    if file_path.suffix in {".html", ".css", ".js"}:
+        content_type = f"{content_type or 'text/plain'}; charset=utf-8"
+
+    return build_response(HTTPStatus.OK, content_type or "application/octet-stream", file_path.read_bytes())
+
+
+def handle_get_request(path):
+    if path == "/api/health":
+        return build_json_response(
+            HTTPStatus.OK,
+            {
+                "status": "ok",
+                "service": "medical-device-statistics-web",
+                "port": PORT,
+            },
+        )
+
+    if path in ALLOWED_STATIC_FILES:
+        return build_static_file_response(ALLOWED_STATIC_FILES[path])
+
+    return build_json_response(HTTPStatus.NOT_FOUND, {"error": "요청한 경로를 찾을 수 없습니다."})
+
+
+def handle_calculate_request(raw_body):
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+        calculator_name = payload.get("calculator")
+        inputs = payload.get("inputs", {})
+
+        if calculator_name not in CALCULATORS:
+            raise ValidationError("지원하지 않는 계산 유형입니다.")
+        if not isinstance(inputs, dict):
+            raise ValidationError("입력 형식이 올바르지 않습니다.")
+
+        result = CALCULATORS[calculator_name](inputs)
+        return build_json_response(HTTPStatus.OK, result)
+    except ValidationError as error:
+        return build_json_response(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+    except json.JSONDecodeError:
+        return build_json_response(HTTPStatus.BAD_REQUEST, {"error": "JSON 본문을 읽을 수 없습니다."})
+    except Exception:
+        return build_json_response(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "서버에서 계산 중 오류가 발생했습니다."})
+
+
+def dispatch_request(method, path, body=b""):
+    normalized_method = (method or "GET").upper()
+
+    if normalized_method == "GET":
+        return handle_get_request(path)
+
+    if normalized_method == "POST":
+        if path != "/api/calculate":
+            return build_json_response(HTTPStatus.NOT_FOUND, {"error": "요청한 API 경로를 찾을 수 없습니다."})
+        return handle_calculate_request(body)
+
+    return build_json_response(HTTPStatus.METHOD_NOT_ALLOWED, {"error": "지원하지 않는 HTTP 메서드입니다."})
 
 
 class StatisticsRequestHandler(BaseHTTPRequestHandler):
@@ -1069,6 +1217,23 @@ class StatisticsRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        self.send_marshaled_response(*dispatch_request("GET", parsed.path))
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        content_length = int(self.headers.get("Content-Length", "0"))
+        raw_body = self.rfile.read(content_length)
+        self.send_marshaled_response(*dispatch_request("POST", parsed.path, raw_body))
+
+    def send_marshaled_response(self, status_code, headers, body):
+        self.send_response(status_code)
+        for header_name, header_value in headers:
+            self.send_header(header_name, header_value)
         self.end_headers()
         self.wfile.write(body)
 

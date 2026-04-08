@@ -11,6 +11,8 @@ const protocolPlanningView = document.querySelector("[data-protocol-view]");
 const protocolCapabilityButtons = document.querySelectorAll("[data-protocol-capability]");
 const protocolForm = document.querySelector("[data-protocol-form]");
 const protocolGenerateButton = document.querySelector("[data-protocol-generate]");
+const protocolExampleButton = document.querySelector("[data-protocol-example]");
+const protocolResetButton = document.querySelector("[data-protocol-reset]");
 const protocolCopyButton = document.querySelector("[data-protocol-copy]");
 const protocolOpenChecklistButton = document.querySelector("[data-protocol-open-checklist]");
 const protocolModeBanner = document.querySelector("[data-protocol-mode-banner]");
@@ -40,8 +42,11 @@ const checklistSections = document.querySelector("[data-checklist-sections]");
 const checklistFlowchart = document.querySelector("[data-checklist-flowchart]");
 const checklistCopyButtons = document.querySelectorAll("[data-checklist-copy]");
 const checklistResetButtons = document.querySelectorAll("[data-checklist-reset]");
+const themeOptionButtons = document.querySelectorAll("[data-theme-option]");
 const protocolPackageStorageKey = "statistics-web:protocol-package";
 const checklistProgressStoragePrefix = "statistics-web:checklist-progress:";
+const themeStorageKey = "statistics-web:theme";
+const defaultTheme = "executive-classic";
 
 const metricConfigs = {
   classification: {
@@ -446,6 +451,29 @@ const metricConfigs = {
       exampleText:
         "예시: R-squared 0.88이 benchmark 0.91 대비 0.06 마진 안에서 비열등한지 평가",
     },
+    bland_altman: {
+      labels: {
+        expectedValue: "예상 평균 차이 (bias)",
+        benchmarkValue: "최대 허용 차이 (Δ)",
+        alpha: "양측 alpha (LoA CI)",
+        standardDeviation: "차이값 표준편차",
+      },
+      visibleFields: ["standardDeviation"],
+      hiddenFields: ["nonInferiorityMargin"],
+      help:
+        "Bland-Altman limits of agreement의 상한 95% 신뢰구간이 임상 허용 차이 Δ 안에 들어오도록 필요한 paired 케이스 수를 근사 계산합니다.",
+      exampleValues: {
+        metric: "bland_altman",
+        expectedValue: 0.2,
+        benchmarkValue: 1.2,
+        standardDeviation: 0.4,
+        alpha: 0.05,
+        power: 0.8,
+        dropout: 0.1,
+      },
+      exampleText:
+        "예시: 평균 차이 0.2, 차이값 SD 0.4, 최대 허용 차이 1.2에서 Bland-Altman agreement를 보이기 위한 샘플수 계산",
+    },
   },
 };
 
@@ -482,6 +510,14 @@ const referenceLibrary = {
     label: "Simplified sample size formulas for medically important effects",
     url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11198523/",
   },
+  blandAltman: {
+    label: "Bland and Altman, agreement between two methods of clinical measurement",
+    url: "https://pubmed.ncbi.nlm.nih.gov/2868172/",
+  },
+  luBlandAltman: {
+    label: "Lu et al., sample size for Bland-Altman method",
+    url: "https://doi.org/10.1515/ijb-2015-0039",
+  },
 };
 
 const sharedReferences = {
@@ -513,6 +549,12 @@ const sharedReferences = {
     referenceLibrary.obuchowski,
     referenceLibrary.mfdsAI,
   ],
+  blandAltman: [
+    referenceLibrary.fdaAI,
+    referenceLibrary.blandAltman,
+    referenceLibrary.luBlandAltman,
+    referenceLibrary.mfdsAI,
+  ],
 };
 
 const sharedAssumptions = {
@@ -535,6 +577,11 @@ const sharedAssumptions = {
     "양성/음성 케이스 비율이 사전에 계획 가능한 검증셋이라고 가정합니다.",
     "AUC 분산은 Hanley-McNeil 근사를 사용합니다.",
     "one-sided alpha 0.025는 통상 양측 95% 신뢰구간 해석과 대응됩니다.",
+  ],
+  blandAltman: [
+    "paired measurement 차이값이 평균과 표준편차로 요약 가능한 연속형 분포라고 가정합니다.",
+    "limits of agreement의 표준오차는 근사적으로 sqrt(3s²/n)로 계산합니다.",
+    "임상 허용 차이 Δ는 expected bias와 1.96×SD를 모두 넘는 값으로 사전에 정의되어야 합니다.",
   ],
 };
 
@@ -745,6 +792,18 @@ const resultMetaMap = {
     noteKo: "회귀 적합도 지표를 continuous higher-better endpoint로 처리합니다.",
     noteEn: "The goodness-of-fit endpoint is treated as a continuous higher-is-better endpoint.",
   }),
+  "measurement:bland_altman": createResultMeta({
+    metricLabel: "Bland-Altman (LoA)",
+    endpointLabelKo: "Bland-Altman 일치도",
+    endpointLabelEn: "Bland-Altman agreement",
+    family: "bland-altman",
+    references: sharedReferences.blandAltman,
+    assumptions: sharedAssumptions.blandAltman,
+    noteKo:
+      "paired difference의 평균과 표준편차를 이용해 limits of agreement의 상한 신뢰구간이 허용 차이 안에 들어오도록 계획합니다.",
+    noteEn:
+      "The planning targets the confidence interval around the upper limit of agreement so that it remains within the pre-specified acceptable difference.",
+  }),
 };
 
 const basicFormTooltips = {
@@ -773,16 +832,22 @@ const basicFormTooltips = {
 const aiFieldTooltipBuilders = {
   metric: () =>
     "어떤 성능값으로 샘플 수를 계산할지 고르는 항목입니다. 지표를 바꾸면 필요한 입력값도 함께 바뀝니다.",
-  expectedValue: ({ metricLabel }) =>
-    `이번 시험에서 AI의 ${metricLabel}가 어느 정도 나올 것으로 예상하는지 적는 값입니다.`,
-  benchmarkValue: ({ metricLabel }) =>
-    `${metricLabel}에서 비교 기준으로 삼을 값입니다. 기존 제품, 기존 모델, 목표 성능 등을 넣으면 됩니다.`,
+  expectedValue: ({ meta, metricLabel }) =>
+    meta?.family === "bland-altman"
+      ? "두 측정 방법 차이의 예상 평균값입니다. bias가 0에 가까울수록 보통 더 유리합니다."
+      : `이번 시험에서 AI의 ${metricLabel}가 어느 정도 나올 것으로 예상하는지 적는 값입니다.`,
+  benchmarkValue: ({ meta, metricLabel }) =>
+    meta?.family === "bland-altman"
+      ? "임상적으로 허용 가능한 최대 절대 차이 Δ입니다. expected bias와 LoA 상한보다 커야 합니다."
+      : `${metricLabel}에서 비교 기준으로 삼을 값입니다. 기존 제품, 기존 모델, 목표 성능 등을 넣으면 됩니다.`,
   nonInferiorityMargin: ({ meta }) =>
     meta?.family === "mean-lower"
       ? "기준값보다 얼마나 더 나빠져도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다."
       : "기준값보다 얼마나 낮아도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다.",
   alpha: ({ meta }) =>
-    meta?.family === "auc"
+    meta?.family === "bland-altman"
+      ? "Bland-Altman에서는 limits of agreement 신뢰구간에 대한 양측 alpha로 해석합니다. 보통 0.05를 많이 사용합니다."
+      : meta?.family === "auc"
       ? "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. AUC에서는 보통 0.025를 많이 사용합니다."
       : "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. 보통 0.025나 0.05를 사용합니다.",
   power: () => "기준을 만족했을 때 그것을 실제로 확인해낼 가능성입니다. 보통 80% 또는 90%를 많이 씁니다.",
@@ -791,7 +856,9 @@ const aiFieldTooltipBuilders = {
   predictedNegativeRate: () =>
     "전체 데이터 중 AI가 정상이라고 판단할 것으로 예상되는 비율입니다.",
   standardDeviation: ({ meta }) =>
-    meta?.family === "mean-lower"
+    meta?.family === "bland-altman"
+      ? "두 방법 차이값이 케이스마다 얼마나 흔들리는지 보여주는 표준편차입니다. 파일럿 데이터에서 추정하는 것이 좋습니다."
+      : meta?.family === "mean-lower"
       ? "오차값이 케이스마다 얼마나 들쭉날쭉한지 보여주는 값입니다. 이전 데이터가 있으면 그 값을 참고해 넣습니다."
       : "성능값이 케이스마다 얼마나 들쭉날쭉한지 보여주는 값입니다. 이전 데이터가 있으면 그 값을 참고해 넣습니다.",
   lesionsPerPositiveCase: () =>
@@ -885,15 +952,50 @@ const workspacePlanPresets = {
 };
 
 const protocolCommonDefaults = {
+  researchQuestion:
+    "Among patients undergoing ultrasound within the intended use setting, does the selected AI function deliver clinically acceptable performance and workflow fit versus the prespecified comparator?",
+  backgroundRationale:
+    "Summarize the unmet clinical need, why current ultrasound interpretation or measurement remains variable, what prior evidence already exists, and which uncertainty this study is intended to resolve for the labeled use.",
+  specificAims:
+    "Aim 1: Estimate the primary performance endpoint against the prespecified comparator.\nAim 2: Evaluate performance across clinically important subgroups, sites, devices, and operator experience levels.\nAim 3: Document workflow fit, usability, and operational limitations relevant to the intended use.",
+  studyDesign: "prospective-diagnostic-accuracy",
+  accessiblePopulation:
+    "Consecutive patients presenting to participating hospitals or clinics for protocol-defined ultrasound examinations within the intended use setting.",
+  inclusionCriteria:
+    "Patients in the intended-use setting with protocol-acceptable ultrasound acquisition, available clinical metadata, and a feasible path to reference-standard determination.",
+  exclusionCriteria:
+    "Cases outside the intended use, technically uninterpretable images, protocol-prohibited prior interventions, and unresolved missing reference-standard data.",
+  samplingPlan:
+    "Use prospective consecutive enrollment whenever feasible, with prespecified quotas or monitoring for site, device, operator experience, disease spectrum, and key clinical subgroups.",
+  recruitmentPlan:
+    "Maintain a screening log for approached, eligible, enrolled, and analyzable subjects; record refusal and withdrawal reasons; and minimize unnecessary exclusions that reduce generalizability.",
+  followUpPlan:
+    "Index ultrasound encounter plus completion of the prespecified reference standard, blinded review, and any required short-term follow-up before database lock.",
+  predictorVariables:
+    "AI output, acquisition metadata, operator experience, device and preset, image quality, and clinically relevant baseline characteristics.",
+  confoundingVariables:
+    "Disease prevalence, case-mix differences, site workflow, device generation, probe type, operator skill, prior testing, and reference-standard timing.",
+  outcomeVariables:
+    "Primary performance endpoint, secondary subgroup performance, agreement or reproducibility measures, workflow outcomes, and protocol deviations affecting analyzability.",
+  blindingPlan:
+    "Use blinded independent review when feasible, separate AI development personnel from validation review, and prespecify adjudication rules for disagreements, uncertainty, and equivocal findings.",
   dataCollectionPlan: "prospective-consecutive",
   validationDatasetPlan: "external-site-sequestered",
   analysisPopulation: "intention-to-diagnose",
   subgroupFocus: "Sex, age, disease severity, site, device, acquisition preset",
+  dataManagementPlan:
+    "Define the data dictionary, role-based access, audit trail, query resolution, version control, missing-data coding, and database lock procedures before first enrollment.",
+  qualityControlPlan:
+    "Include site initiation training, acquisition audits, reader calibration, central monitoring, protocol deviation review, and predefined corrective actions for quality drift.",
   acceptanceCriteria:
     "Primary endpoint with 95% CI meets the prespecified threshold and no clinically unacceptable subgroup degradation",
   humanFactorsPlan: "usability-evaluation",
   monitoringPlan: "quarterly-review",
   changeControlPlan: "locked-model",
+  limitationsPlan:
+    "Prespecify how the protocol will address disease-spectrum imbalance, missing or uncertain truth, device heterogeneity, workflow deviations, and fallback analyses if assumptions fail.",
+  ethicsPlan:
+    "Describe IRB or ethics approval, consent or waiver logic, privacy protections, adverse-event handling, and protections for vulnerable subjects or incidental findings.",
 };
 
 const protocolWorkflowDefaults = {
@@ -1427,6 +1529,7 @@ forms.forEach((form) => {
   applyFormTooltips(form);
 });
 
+initializeThemePicker();
 initializeResultDefaults();
 initializeProtocolPlanner();
 initializeChecklistPage();
@@ -1505,6 +1608,14 @@ function initializeProtocolPlanner() {
       scrollToOutput: true,
       showFeedback: true,
     });
+  });
+
+  protocolExampleButton?.addEventListener("click", () => {
+    applyProtocolExamplePreset();
+  });
+
+  protocolResetButton?.addEventListener("click", () => {
+    resetProtocolPlannerState();
   });
 
   protocolCopyButton?.addEventListener("click", async () => {
@@ -1725,6 +1836,7 @@ function buildProtocolContext() {
   return {
     config,
     inputs,
+    studyDesignLabel: getSelectValueLabel(protocolForm, "studyDesign"),
     comparatorLabel: getSelectValueLabel(protocolForm, "comparator"),
     hypothesisLabel: getSelectValueLabel(protocolForm, "hypothesis"),
     dataCollectionPlanLabel: getSelectValueLabel(protocolForm, "dataCollectionPlan"),
@@ -1779,6 +1891,98 @@ function applyProtocolPreset(presetKey) {
   } else {
     renderProtocolPlaceholder(config);
   }
+  return config.label;
+}
+
+function buildProtocolExampleValues(config) {
+  const defaults = getProtocolConfigDefaults(config);
+  const indication = defaults.indication || "초음파 판독 보조";
+  const intendedUse = defaults.intendedUse || `${config.label} AI intended use`;
+  const population = defaults.population || "의도된 사용 환경의 초음파 대상자";
+  const primaryEndpoint = defaults.primaryEndpoint || config.endpointSummary || "primary performance endpoint";
+  const referenceStandard = defaults.referenceStandard || "blinded expert consensus truth set";
+  const isRealtime = config.workflowType === "realtime";
+  const studyDesign = isRealtime ? "pragmatic-workflow" : "prospective-diagnostic-accuracy";
+  const sites = Math.max(Number(defaults.sites || 5), isRealtime ? 6 : 5);
+  const readers = Math.max(Number(defaults.readers || 3), isRealtime ? 3 : 4);
+  const subgroupFocus = defaults.subgroupFocus || protocolCommonDefaults.subgroupFocus;
+
+  return {
+    ...defaults,
+    studyDesign,
+    sites,
+    readers,
+    researchQuestion: `Among patients undergoing ultrasound for ${indication}, does the ${config.label} AI provide clinically acceptable performance for ${intendedUse} compared with the prespecified comparator in the intended use setting?`,
+    backgroundRationale: `${indication} remains vulnerable to inter-operator variation, device heterogeneity, and inconsistent interpretation. This example protocol assumes a multicenter validation study intended to show that the ${config.label} function improves consistency or maintains acceptable performance within the labeled workflow.`,
+    specificAims: `Aim 1: Estimate ${primaryEndpoint} against the prespecified comparator and reference standard.\nAim 2: Assess performance across sex, age, disease severity, site, device, preset, and operator-experience subgroups.\nAim 3: Document workflow fit, usability, and known operational limitations for the ${config.label} workflow.`,
+    accessiblePopulation: `Consecutive eligible patients presenting to ${sites} participating ultrasound sites for examinations matching the intended use of ${config.label}.`,
+    inclusionCriteria: `Patients receiving the protocol-defined ultrasound examination for ${indication}.\nProtocol-acceptable acquisition quality and required clinical metadata available.\nReference-standard determination feasible within the planned study window.`,
+    exclusionCriteria: `Cases outside the intended use population.\nTechnically uninterpretable or corrupted image acquisitions.\nReference-standard determination unavailable or permanently indeterminate after adjudication.`,
+    samplingPlan: `Use prospective consecutive enrollment with monitoring quotas for site, device, operator experience, and disease-spectrum coverage. Preserve representativeness first and use enrichment only when it is prespecified and justified in the SAP.`,
+    recruitmentPlan: `Maintain a screening log for approached, eligible, enrolled, and analyzable cases. Record refusal, withdrawal, and non-analyzability reasons and review weekly during start-up and monthly thereafter.`,
+    followUpPlan: `Index ultrasound visit followed by completion of the reference standard, blinded review, adjudication, and database lock before primary analysis. ${isRealtime ? "Capture workflow observations during the live scan session." : "Capture stored-image selection metadata at the time of post-scan review."}`,
+    predictorVariables: `Primary AI output for ${config.label}, confidence or score output, device and preset metadata, operator experience, image-quality markers, and baseline clinical characteristics relevant to ${indication}.`,
+    confoundingVariables: `Disease prevalence, case-mix imbalance, site workflow, probe type, device generation, operator skill, prior testing, and the timing or quality of the reference standard.`,
+    outcomeVariables: `${primaryEndpoint}; subgroup performance for ${subgroupFocus}; ${isRealtime ? "latency, workflow completion, and user override behavior" : "saved-image selection consistency and post-scan review behavior"}; protocol deviations affecting analyzability.`,
+    blindingPlan: `Use blinded independent review and prespecified adjudication. Readers defining the reference standard should not see validation-phase AI outputs whenever feasible, and equivocal or discordant cases should follow a locked adjudication rule.`,
+    dataManagementPlan: `Define a study data dictionary, role-based access, audit trail, query management, deviation coding, version control, and database-lock procedures before first enrollment. Freeze the validation dataset before final analysis.`,
+    qualityControlPlan: `Run site initiation training, acquisition audits, reader calibration, central monitoring, and periodic review of protocol deviations, image-quality failures, and subgroup balance. Escalate corrective actions when drift is detected.`,
+    limitationsPlan: `This example protocol assumes realistic variation in site workflow, disease prevalence, and image quality. Sensitivity analyses should address non-analyzable cases, uncertain truth, subgroup instability, and any gap between the target and accessible populations.`,
+    ethicsPlan: `Obtain ethics or IRB approval before enrollment, document consent or waiver logic, protect privacy, track adverse events and incidental findings, and define escalation pathways for clinically significant unexpected observations.`,
+    subgroupFocus,
+    acceptanceCriteria: `The lower confidence bound for the primary endpoint must meet the prespecified threshold, with no clinically unacceptable degradation across key subgroups (${subgroupFocus}).`,
+    savedWorkflow: isRealtime ? defaults.savedWorkflow : defaults.savedWorkflow || "representative-image",
+    overlayMode: isRealtime ? defaults.overlayMode || "bounding-box" : defaults.overlayMode,
+    latencyTarget: isRealtime ? Number(defaults.latencyTarget || 150) : defaults.latencyTarget,
+  };
+}
+
+function applyProtocolExamplePreset() {
+  if (!protocolForm) {
+    return "";
+  }
+
+  const config = protocolCapabilityConfigs[activeProtocolCapability];
+  if (!config) {
+    return "";
+  }
+
+  setFormValues(protocolForm, buildProtocolExampleValues(config));
+  toggleProtocolFields(config.workflowType);
+  updateProtocolPlannerMeta(config);
+  generateProtocolDraft({
+    scrollToOutput: true,
+    showFeedback: true,
+  });
+
+  if (protocolHelp) {
+    protocolHelp.textContent = `${config.label} capability에 맞는 예시 프로토콜 입력값을 적용하고 초안을 다시 생성했습니다.`;
+  }
+
+  return config.label;
+}
+
+function resetProtocolPlannerState() {
+  if (!protocolForm) {
+    return "";
+  }
+
+  const config = protocolCapabilityConfigs[activeProtocolCapability];
+  if (!config) {
+    return "";
+  }
+
+  lastGeneratedProtocolPackage = null;
+  clearStoredProtocolPackage();
+  setFormValues(protocolForm, getProtocolConfigDefaults(config));
+  toggleProtocolFields(config.workflowType);
+  updateProtocolPlannerMeta(config);
+  renderProtocolPlaceholder(config);
+
+  if (protocolHelp) {
+    protocolHelp.textContent = `${config.label} capability의 기본 입력 상태로 복원했습니다.`;
+  }
+
   return config.label;
 }
 
@@ -2335,6 +2539,509 @@ function buildProtocolChecklistSections(context, summary = {}) {
   ];
 }
 
+function renderProtocolDraft(context, protocolPackage = buildProtocolPackage(context)) {
+  const {
+    config,
+    inputs,
+    studyDesignLabel,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+  } = context;
+  const siteText = `${formatCount(inputs.sites)} ${Number(inputs.sites) === 1 ? "site" : "sites"}`;
+  const readerText = `${formatCount(inputs.readers)} expert ${Number(inputs.readers) === 1 ? "reader" : "readers"}`;
+  const workflowSpecificText =
+    config.workflowType === "realtime"
+      ? `Run the AI during live scanning using ${overlayModeLabel} and keep the operational response time at or below ${formatDisplayNumber(Number(inputs.latencyTarget) || 0, 0)} ms.`
+      : `Run the AI only after the operator saves the representative image or cine loop using the "${savedWorkflowLabel}" trigger.`;
+
+  const specificAims = splitProtocolField(inputs.specificAims);
+  const inclusionCriteria = splitProtocolField(inputs.inclusionCriteria);
+  const exclusionCriteria = splitProtocolField(inputs.exclusionCriteria);
+  const synopsis = normalizeWhitespace(
+    `${config.label} ultrasound clinical trial for ${inputs.indication}. Research question: ${inputs.researchQuestion}. Intended use: ${inputs.intendedUse}. Primary endpoint focus: ${inputs.primaryEndpoint}.`
+  );
+
+  const questionBullets = [
+    `Research question: ${inputs.researchQuestion}`,
+    `Study design: ${studyDesignLabel}. Intended use: ${inputs.intendedUse}.`,
+    `Target population: ${inputs.population}. Accessible population: ${inputs.accessiblePopulation}.`,
+    `FINER checkpoint: confirm feasibility for ${siteText} and ${readerText}, novelty versus current workflow, ethical acceptability, and clinical relevance before protocol freeze.`,
+    ...specificAims.map((aim, index) => `Specific aim ${index + 1}: ${aim}`),
+  ];
+  const backgroundBullets = [
+    inputs.backgroundRationale,
+    `The significance section should explain why ${config.label} matters for ${inputs.indication}, what gap remains after prior evidence, and how the proposed study will change clinical or operational decision-making.`,
+    "Because this is an ultrasound AI study, the rationale should address operator dependence, device and preset variation, and the disease spectrum expected across participating sites.",
+  ];
+  const designBullets = [
+    `${config.designSummary} using a ${studyDesignLabel} framework.`,
+    `Comparator: ${comparatorLabel}. Primary hypothesis: ${hypothesisLabel}. Reference standard: ${inputs.referenceStandard}.`,
+    `Planned footprint: ${siteText} and ${readerText}, with site, operator, device, and preset metadata captured for heterogeneity assessment.`,
+    `Data capture will follow ${dataCollectionPlanLabel}, and the primary analysis population will be ${analysisPopulationLabel}.`,
+  ];
+  const subjectsBullets = [
+    `Target population: ${inputs.population}. Accessible population: ${inputs.accessiblePopulation}.`,
+    ...inclusionCriteria.map((item) => `Inclusion criterion: ${item}`),
+    ...exclusionCriteria.map((item) => `Exclusion criterion: ${item}`),
+    `Sampling plan: ${inputs.samplingPlan}`,
+    `Recruitment and retention plan: ${inputs.recruitmentPlan}`,
+    `Visit or follow-up schedule: ${inputs.followUpPlan}`,
+  ];
+  const measurementBullets = [
+    `Predictor variables: ${inputs.predictorVariables}`,
+    `Potential confounding variables: ${inputs.confoundingVariables}`,
+    `Outcome variables: ${inputs.outcomeVariables}`,
+    `Primary endpoint focus: ${inputs.primaryEndpoint}`,
+    `Blinding and adjudication plan: ${inputs.blindingPlan}`,
+    "Measurements should be defined to maximize precision, accuracy, validity, and reproducibility, with pre-specified handling of low-quality, missing, or equivocal images.",
+  ];
+  const workflowBullets = [
+    workflowSpecificText,
+    ...config.workflowBullets,
+    config.workflowType === "realtime"
+      ? "Capture AI on or off state, user override, key-frame logging, and latency excursions as part of the operational audit trail."
+      : "Preserve an audit trail of who saved each image, why it was selected, and whether post-scan review changed the interpretation.",
+  ];
+  const endpointBullets = [
+    `Primary endpoint focus: ${inputs.primaryEndpoint}.`,
+    ...config.endpointBullets,
+    `Prespecified acceptance criteria: ${inputs.acceptanceCriteria}.`,
+    `Key subgroup analyses should cover ${inputs.subgroupFocus}.`,
+    config.workflowType === "realtime"
+      ? "Real-time studies should treat latency, task completion, user interaction, and fallback conditions as key secondary endpoints."
+      : "Stored-image studies should predefine sensitivity analyses for image-selection bias and non-analyzable saved-image cases.",
+    "Sample-size justification should align the unit of analysis with the endpoint and address clustering, repeated measures, missing data, reader variability, and reference-standard uncertainty.",
+    ...config.statBullets,
+  ];
+  const ultrasoundBullets = [
+    "Ultrasound test-method studies should explicitly address spectrum bias, device heterogeneity, and operator dependence.",
+    `Reference standard: ${inputs.referenceStandard}.`,
+    ...config.ultrasoundBullets,
+    "Avoid incorporation bias by separating index AI output from truth determination whenever feasible, and document any unavoidable overlap before analysis.",
+  ];
+  const dataValidationBullets = [
+    `Data collection plan: ${dataCollectionPlanLabel}.`,
+    `Validation dataset control: ${validationDatasetPlanLabel}.`,
+    `Data management plan: ${inputs.dataManagementPlan}.`,
+    `Quality control plan: ${inputs.qualityControlPlan}.`,
+    "Keep validation data independent or sequestered from development and tuning datasets, and document any overlap before analysis.",
+    "Define the data dictionary, query workflow, audit trail, database lock, and protocol-deviation review process before first subject enrollment.",
+  ];
+  const humanFactorsBullets = [
+    ...config.safetyBullets,
+    `Human factors and usability strategy: ${humanFactorsPlanLabel}.`,
+    config.workflowType === "realtime"
+      ? "The usability package should test whether users correctly interpret overlays, confidence states, latency behavior, and fallback conditions during active scanning."
+      : "The usability package should evaluate image selection, post-scan review behavior, confidence communication, and risk of overreliance on stored-image outputs.",
+    `Ethics and human-subject protections: ${inputs.ethicsPlan}.`,
+    "Labeling should disclose known limitations, compatible acquisition conditions, user responsibilities, and clinically important subgroup caveats.",
+  ];
+  const changeControlSpecificNote =
+    inputs.changeControlPlan === "locked-model"
+      ? "The current plan assumes a locked model, and modifications that materially affect safety, effectiveness, intended use, population, or compatible inputs should be routed through a new submission strategy."
+      : inputs.changeControlPlan === "pccp-performance"
+        ? "A bounded PCCP strategy should pre-specify which performance improvements are allowed, how updated data are collected, and what acceptance criteria must be met before release."
+        : inputs.changeControlPlan === "pccp-input-compatibility"
+          ? "A bounded PCCP strategy should define the compatible new devices, presets, or acquisition inputs and require validation on representative holdout data before deployment."
+          : "A bounded PCCP strategy should define the limits of any population expansion, the subgroup evidence required, and the criteria for when a new submission becomes necessary.";
+  const limitationsBullets = [
+    `Limitations and alternatives: ${inputs.limitationsPlan}.`,
+    "Sensitivity analyses should address non-analyzable cases, missing truth, uncertain adjudication, and performance shifts across sites, devices, and operators.",
+    "If recruitment, prevalence, or truth availability diverges from the original assumptions, the protocol should define escalation rules and alternative analytic approaches before unblinding.",
+  ];
+  const monitoringBullets = [
+    `Device performance monitoring plan: ${monitoringPlanLabel}.`,
+    `Change control strategy: ${changeControlPlanLabel}.`,
+    "Lifecycle monitoring should track adverse events, subgroup drift, site-specific degradation, and any meaningful performance change after deployment or update.",
+    changeControlSpecificNote,
+  ];
+
+  return `
+    <div class="protocol-output-header">
+      <div>
+        <p class="section-kicker">Protocol Draft</p>
+        <h2>${escapeHtml(config.label)} Ultrasound Clinical Trial Protocol Draft</h2>
+        <p class="result-meta">${escapeHtml(synopsis)}</p>
+      </div>
+      <div class="protocol-tag-row">
+        <span class="protocol-tag">${escapeHtml(config.workflowType === "realtime" ? "Real-time AI" : "Stored-image AI")}</span>
+        <span class="protocol-tag">${escapeHtml(hypothesisLabel)}</span>
+        <span class="protocol-tag">${escapeHtml(siteText)}</span>
+        <span class="protocol-tag">${escapeHtml(readerText)}</span>
+      </div>
+    </div>
+
+    <div class="protocol-output-grid">
+      <article class="protocol-output-section is-wide">
+        <h3>1. Study Synopsis</h3>
+        <p>${escapeHtml(synopsis)}</p>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>2. Research Question And Specific Aims</h3>
+        <ul class="protocol-section-list">${questionBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>3. Background And Significance</h3>
+        <ul class="protocol-section-list">${backgroundBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>4. Study Design Overview</h3>
+        <ul class="protocol-section-list">${designBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>5. Subjects, Sampling, And Follow-up</h3>
+        <ul class="protocol-section-list">${subjectsBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>6. Measurements And Variable Framework</h3>
+        <ul class="protocol-section-list">${measurementBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>7. Clinical Workflow</h3>
+        <ul class="protocol-section-list">${workflowBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>8. Endpoint, Hypothesis, And Sample-Size Notes</h3>
+        <ul class="protocol-section-list">${endpointBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>9. Ultrasound Test-Method Considerations</h3>
+        <ul class="protocol-section-list">${ultrasoundBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>10. Data Management And Quality Control</h3>
+        <ul class="protocol-section-list">${dataValidationBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>11. Human Factors, Safety, And Ethics</h3>
+        <ul class="protocol-section-list">${humanFactorsBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>12. Limitations And Alternative Approaches</h3>
+        <ul class="protocol-section-list">${limitationsBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section">
+        <h3>13. Monitoring And Change Control</h3>
+        <ul class="protocol-section-list">${monitoringBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </article>
+
+      <article class="protocol-output-section is-wide">
+        <h3>14. Study Flowchart</h3>
+        ${renderProtocolFlowchart(protocolPackage.flowchartSteps, protocolPackage.workflowType)}
+      </article>
+    </div>
+  `;
+}
+
+function buildProtocolPackage(context) {
+  const {
+    config,
+    inputs,
+    studyDesignLabel,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+  } = context;
+  const siteCount = Math.max(Number(inputs.sites) || 0, 0);
+  const readerCount = Math.max(Number(inputs.readers) || 0, 0);
+  const siteText = `${formatCount(siteCount)} ${siteCount === 1 ? "site" : "sites"}`;
+  const readerText = `${formatCount(readerCount)} expert ${readerCount === 1 ? "reader" : "readers"}`;
+  const workflowLabel = config.workflowType === "realtime" ? "Real-time AI" : "Stored-image AI";
+  const workflowExecution =
+    config.workflowType === "realtime"
+      ? `Run ${config.label} during live scanning as a ${overlayModeLabel || "visual overlay"} workflow and keep response time within ${formatDisplayNumber(Number(inputs.latencyTarget) || 0, 0)} ms.`
+      : `Run ${config.label} only after the operator stores the representative image or cine loop using the "${savedWorkflowLabel || "saved image"}" trigger.`;
+  const synopsis = normalizeWhitespace(
+    `${config.label} ultrasound clinical trial for ${inputs.indication}. Research question: ${inputs.researchQuestion}. Intended use: ${inputs.intendedUse}. Study design: ${studyDesignLabel}. Primary endpoint focus: ${inputs.primaryEndpoint}.`
+  );
+  const signature = buildProtocolSignature(context);
+  const flowchartSteps = buildProtocolFlowchartSteps(context, {
+    siteText,
+    readerText,
+    workflowExecution,
+  });
+  const checklistSections = buildProtocolChecklistSections(context, {
+    siteText,
+    readerText,
+    workflowExecution,
+    signature,
+  });
+
+  return {
+    version: 2,
+    signature,
+    generatedAt: new Date().toISOString(),
+    capabilityId: activeProtocolCapability,
+    label: config.label,
+    capabilityDescription: config.description,
+    workflowType: config.workflowType,
+    workflowLabel,
+    designSummary: config.designSummary,
+    endpointSummary: config.endpointSummary,
+    inputs: { ...inputs },
+    studyDesignLabel,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+    savedWorkflowLabel,
+    overlayModeLabel,
+    siteText,
+    readerText,
+    workflowExecution,
+    synopsis,
+    flowchartSteps,
+    checklistSections,
+  };
+}
+
+function buildProtocolSignature(context) {
+  const { inputs } = context;
+
+  return [
+    activeProtocolCapability,
+    normalizeWhitespace(inputs.researchQuestion || ""),
+    normalizeWhitespace(inputs.indication || ""),
+    normalizeWhitespace(inputs.intendedUse || ""),
+    normalizeWhitespace(inputs.population || ""),
+    normalizeWhitespace(inputs.primaryEndpoint || ""),
+  ]
+    .join("|")
+    .toLowerCase();
+}
+
+function buildProtocolFlowchartSteps(context, summary = {}) {
+  const { config, inputs, studyDesignLabel, comparatorLabel, hypothesisLabel } = context;
+  const baseSteps = [
+    {
+      title: "Freeze question and aims",
+      detail: `Lock the research question, specific aims, study design (${studyDesignLabel}), comparator (${comparatorLabel}), and hypothesis (${hypothesisLabel}).`,
+    },
+    {
+      title: "Start-up and governance",
+      detail: `Qualify ${summary.siteText || "sites"}, train operators and ${summary.readerText || "readers"}, finalize data management and quality-control procedures, and secure ethics approval.`,
+    },
+    {
+      title: "Screen and enroll",
+      detail: `Enroll the intended-use population (${inputs.population}) using the sampling plan and maintain a screening log for exclusions, refusals, and non-analyzable cases.`,
+    },
+    {
+      title: config.workflowType === "realtime" ? "Live scan with AI" : "Scan, save, then run AI",
+      detail: summary.workflowExecution || "Execute the AI workflow exactly as described in the generated protocol draft.",
+    },
+    {
+      title: "Reference standard and blinded review",
+      detail: `Assemble ${inputs.referenceStandard}, apply the blinding and adjudication plan, and complete truth determination before database lock.`,
+    },
+    {
+      title: "Clean, lock, and analyze",
+      detail: `Resolve data queries, review deviations, lock the database, and analyze ${inputs.primaryEndpoint} in the ${context.analysisPopulationLabel} population.`,
+    },
+    {
+      title: "Interpret limits and report",
+      detail: `Report subgroup findings for ${inputs.subgroupFocus}, document limitations, and finalize the clinical study report with confidence intervals and operational findings.`,
+    },
+    {
+      title: "Monitor and govern changes",
+      detail: `Run ${context.monitoringPlanLabel} and follow ${context.changeControlPlanLabel} for post-validation monitoring, versioning, and future model updates.`,
+    },
+  ];
+
+  return baseSteps.map((step, index) => ({
+    id: `${activeProtocolCapability}-flow-${index + 1}`,
+    number: String(index + 1).padStart(2, "0"),
+    ...step,
+  }));
+}
+
+function buildProtocolChecklistSections(context, summary = {}) {
+  const {
+    config,
+    inputs,
+    studyDesignLabel,
+    comparatorLabel,
+    hypothesisLabel,
+    dataCollectionPlanLabel,
+    validationDatasetPlanLabel,
+    analysisPopulationLabel,
+    humanFactorsPlanLabel,
+    monitoringPlanLabel,
+    changeControlPlanLabel,
+  } = context;
+  const makeItems = (sectionKey, items) =>
+    items.map((item, index) => ({
+      id: `${summary.signature}:${sectionKey}:${index + 1}`,
+      ...item,
+    }));
+
+  return [
+    {
+      key: "question-aims",
+      title: "Research question and aims",
+      description: "Freeze the research question, significance, and specific aims before locking operations.",
+      items: makeItems("question-aims", [
+        {
+          title: "Confirm the study question, design, and intended use",
+          note: `Question: ${inputs.researchQuestion}. Design: ${studyDesignLabel}. Intended use: ${inputs.intendedUse}.`,
+        },
+        {
+          title: "Run a FINER check before final protocol freeze",
+          note: `Verify feasibility for ${summary.siteText || "sites"} and ${summary.readerText || "readers"}, confirm novelty and relevance, and document ethical acceptability.`,
+        },
+        {
+          title: "Lock the specific aims and primary endpoint hierarchy",
+          note: `Primary endpoint focus: ${inputs.primaryEndpoint}. Acceptance criteria: ${inputs.acceptanceCriteria}.`,
+        },
+      ]),
+    },
+    {
+      key: "subjects-sampling",
+      title: "Subjects, eligibility, and sampling",
+      description: "Keep the intended sample aligned with the target population and document the path from screening to analyzable cases.",
+      items: makeItems("subjects-sampling", [
+        {
+          title: "Confirm target and accessible populations",
+          note: `Target population: ${inputs.population}. Accessible population: ${inputs.accessiblePopulation}.`,
+        },
+        {
+          title: "Lock inclusion, exclusion, and sampling rules",
+          note: `Sampling plan: ${inputs.samplingPlan}.`,
+        },
+        {
+          title: "Prepare recruitment, retention, and follow-up procedures",
+          note: `Recruitment plan: ${inputs.recruitmentPlan}. Follow-up plan: ${inputs.followUpPlan}.`,
+        },
+      ]),
+    },
+    {
+      key: "measurement-framework",
+      title: "Measurements and variable framework",
+      description: "Define what will be measured and how the study will protect precision, accuracy, validity, and reproducibility.",
+      items: makeItems("measurement-framework", [
+        {
+          title: "Lock predictor, confounding, and outcome variables",
+          note: `Predictors: ${inputs.predictorVariables}. Confounders: ${inputs.confoundingVariables}. Outcomes: ${inputs.outcomeVariables}.`,
+        },
+        {
+          title: "Finalize the blinding and adjudication package",
+          note: `Comparator: ${comparatorLabel}. Reference standard: ${inputs.referenceStandard}. Blinding plan: ${inputs.blindingPlan}.`,
+        },
+        {
+          title: "Document how missing, equivocal, and poor-quality cases will be handled",
+          note: `Primary analysis population: ${analysisPopulationLabel}. Key subgroup plan: ${inputs.subgroupFocus}.`,
+        },
+      ]),
+    },
+    {
+      key: "startup-qc",
+      title: "Start-up, data management, and quality control",
+      description: "Operationalize the study so site-to-site execution remains consistent.",
+      items: makeItems("startup-qc", [
+        {
+          title: "Finalize site initiation and reader training",
+          note: `Current plan: ${summary.siteText || "sites"} and ${summary.readerText || "readers"}.`,
+        },
+        {
+          title: "Freeze the data collection and validation-set strategy",
+          note: `Collection plan: ${dataCollectionPlanLabel}. Validation plan: ${validationDatasetPlanLabel}.`,
+        },
+        {
+          title: "Approve the data-management and quality-control package",
+          note: `Data management: ${inputs.dataManagementPlan}. Quality control: ${inputs.qualityControlPlan}.`,
+        },
+      ]),
+    },
+    {
+      key: "execution",
+      title: "Acquisition and AI execution",
+      description: "Perform the scan and AI workflow exactly as written in the draft protocol.",
+      items: makeItems("execution", [
+        {
+          title: "Perform ultrasound acquisition according to protocol",
+          note: "Capture device, preset, operator, and image-quality metadata needed for subgroup and QC review.",
+        },
+        {
+          title: config.workflowType === "realtime" ? "Run AI during live scanning" : "Save the representative image or cine loop before AI analysis",
+          note: summary.workflowExecution,
+        },
+        {
+          title: config.workflowType === "realtime" ? "Log overlays, overrides, and latency events" : "Maintain a stored-image selection audit trail",
+          note: config.workflowType === "realtime" ? `Use the latency target of ${formatDisplayNumber(Number(inputs.latencyTarget) || 0, 0)} ms for operational review.` : `Stored-image workflow: ${context.savedWorkflowLabel || "saved image review"}.`,
+        },
+      ]),
+    },
+    {
+      key: "review-analysis",
+      title: "Reference standard, analysis, and reporting",
+      description: "Assemble truth, lock the database, and produce an analysis-ready endpoint package.",
+      items: makeItems("review-analysis", [
+        {
+          title: "Complete blinded review and adjudication before database lock",
+          note: `Reference standard: ${inputs.referenceStandard}.`,
+        },
+        {
+          title: "Review endpoint analyzability, deviations, and subgroup coverage",
+          note: `Primary endpoint: ${inputs.primaryEndpoint}. Subgroups: ${inputs.subgroupFocus}.`,
+        },
+        {
+          title: "Interpret limitations and finalize the report package",
+          note: `Limitations plan: ${inputs.limitationsPlan}.`,
+        },
+      ]),
+    },
+    {
+      key: "ethics-lifecycle",
+      title: "Ethics, human factors, and lifecycle monitoring",
+      description: "Close the loop from human-subject protections to post-validation monitoring and updates.",
+      items: makeItems("ethics-lifecycle", [
+        {
+          title: "Confirm ethics and human-subject protections",
+          note: `Ethics plan: ${inputs.ethicsPlan}.`,
+        },
+        {
+          title: "Prepare usability, labeling, and operator guidance evidence",
+          note: `Human factors plan: ${humanFactorsPlanLabel}.`,
+        },
+        {
+          title: "Document monitoring and bounded change control",
+          note: `Monitoring: ${monitoringPlanLabel}. Change control: ${changeControlPlanLabel}.`,
+        },
+      ]),
+    },
+  ];
+}
+
 function renderProtocolFlowchart(steps, workflowType) {
   return `
     <div class="protocol-flowchart ${workflowType === "realtime" ? "is-realtime" : "is-stored"}" role="img" aria-label="Study flowchart">
@@ -2639,6 +3346,54 @@ function removeStorageValue(key) {
     window.localStorage.removeItem(key);
   } catch (error) {
     // Ignore storage cleanup failures.
+  }
+}
+
+function initializeThemePicker() {
+  const initialTheme = readThemeFromStorage() || document.documentElement.dataset.theme || defaultTheme;
+  applyTheme(initialTheme, { persist: false });
+
+  themeOptionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyTheme(button.dataset.themeOption || defaultTheme);
+    });
+  });
+}
+
+function applyTheme(theme, options = {}) {
+  const nextTheme = theme === "neo-dark" ? "neo-dark" : defaultTheme;
+
+  document.documentElement.dataset.theme = nextTheme;
+
+  if (document.body) {
+    document.body.dataset.theme = nextTheme;
+  }
+
+  themeOptionButtons.forEach((button) => {
+    const isActive = button.dataset.themeOption === nextTheme;
+    button.setAttribute("aria-pressed", String(isActive));
+    button.classList.toggle("is-active", isActive);
+  });
+
+  if (options.persist !== false) {
+    writeThemeToStorage(nextTheme);
+  }
+}
+
+function readThemeFromStorage() {
+  try {
+    return window.localStorage.getItem(themeStorageKey);
+  } catch (error) {
+    return null;
+  }
+}
+
+function writeThemeToStorage(theme) {
+  try {
+    window.localStorage.setItem(themeStorageKey, theme);
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 
@@ -3041,6 +3796,13 @@ function normalizeWhitespace(value) {
   return String(value).replace(/\s+/g, " ").trim();
 }
 
+function splitProtocolField(value) {
+  return String(value || "")
+    .split(/\r?\n|;/)
+    .map((entry) => normalizeWhitespace(entry))
+    .filter(Boolean);
+}
+
 function scrollToElement(element, block = "start") {
   if (!element) {
     return false;
@@ -3090,9 +3852,19 @@ function applyMetricConfig(form) {
 
   form.querySelectorAll("[data-label-key]").forEach((labelNode) => {
     const key = labelNode.dataset.labelKey;
-    if (config.labels[key]) {
-      labelNode.textContent = config.labels[key];
+    if (!labelNode.dataset.defaultLabel) {
+      labelNode.dataset.defaultLabel = labelNode.textContent;
     }
+    labelNode.textContent = config.labels[key] || labelNode.dataset.defaultLabel;
+  });
+
+  form.querySelectorAll("[data-core-field]").forEach((fieldWrapper) => {
+    const fieldName = fieldWrapper.dataset.coreField;
+    const isHidden = (config.hiddenFields || []).includes(fieldName);
+    fieldWrapper.classList.toggle("field-hidden", isHidden);
+    fieldWrapper.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.disabled = isHidden;
+    });
   });
 
   form.querySelectorAll("[data-optional-field]").forEach((fieldWrapper) => {
@@ -3350,6 +4122,44 @@ function renderGuidancePlanningOverlay(context) {
 
 function buildEnhancedRegulatoryTextSafe(context) {
   const { categoryLabel, meta, inputs, result, guidancePlanning } = context;
+  if (meta.family === "bland-altman") {
+    const counts = buildRequirementPhrase(result.metrics || {});
+    const dropoutText = formatPercentValue(inputs.dropout);
+    const agreementLimit = formatDisplayNumber(inputs.benchmarkValue);
+    const bias = formatDisplayNumber(inputs.expectedValue);
+    const sd = formatDisplayNumber(inputs.standardDeviation);
+    const alphaText = formatDisplayNumber(inputs.alpha);
+    const powerText = formatPercentValue(inputs.power);
+
+    const koParts = [
+      `본 ${categoryLabel} 성능평가 샘플수는 Bland-Altman limits of agreement 접근을 사용하여 paired difference의 평균 ${bias}와 표준편차 ${sd}를 가정하고, 최대 허용 차이 Δ ${agreementLimit} 안에서 upper LoA의 신뢰구간을 확보하도록 산출하였다.`,
+      `계산에는 양측 alpha ${alphaText}와 검정력 ${powerText}를 적용하였다.`,
+      `기본 계산 결과 ${counts.koRequired}이며, 예상 탈락률 ${dropoutText}를 반영한 목표 모집 수는 ${counts.koAdjusted}로 설정하였다.`,
+      `${meta.noteKo}`,
+    ];
+
+    const enParts = [
+      `The sample size for the ${categoryLabel.toLowerCase()} performance evaluation was determined using a Bland-Altman limits-of-agreement approach, assuming an expected mean paired difference of ${bias}, a standard deviation of differences of ${sd}, and a maximum acceptable difference of ${agreementLimit}.`,
+      `A two-sided alpha of ${alphaText} and ${powerText} power were applied to keep the confidence interval around the upper limit of agreement within the acceptable difference.`,
+      `The base calculation showed that ${counts.enRequired}, and the target enrollment was set at ${counts.enAdjusted} after allowing for an anticipated dropout rate of ${dropoutText}.`,
+      `${meta.noteEn}`,
+    ];
+
+    if (guidancePlanning) {
+      koParts.push(
+        `추가 planning overlay에서는 design effect ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, reference standard failure rate ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, subgroup floor를 반영하여 최종 권고 모집 수를 ${formatCount(guidancePlanning.finalPlanningCases)}건으로 조정하였다.`
+      );
+      enParts.push(
+        `In a guidance-aligned planning overlay, the enrollment target was further stress-tested with a design effect of ${formatDisplayNumber(guidancePlanning.designEffect, 2)}, a reference-standard failure rate of ${formatPercentValue(guidancePlanning.referenceReviewFailureRate)}, and subgroup floors, yielding a final recommended planning target of ${formatCount(guidancePlanning.finalPlanningCases)} cases.`
+      );
+    }
+
+    return {
+      ko: koParts.join(" "),
+      en: enParts.join(" "),
+    };
+  }
+
   const counts = buildRequirementPhrase(result.metrics || {});
   const threshold = result.metrics?.nonInferiorityThreshold;
   const method = buildMethodPresentation(context);
@@ -3474,6 +4284,125 @@ function buildEnhancedRegulatoryText(context) { return buildEnhancedRegulatoryTe
 
 function buildEnhancedParameterRows(context) {
   const { categoryLabel, meta, inputs, result, guidancePlanning } = context;
+  if (meta.family === "bland-altman") {
+    const rows = [
+      {
+        item: "Category",
+        value: categoryLabel,
+        note: "AI performance domain under evaluation",
+      },
+      {
+        item: "Primary endpoint",
+        value: meta.metricLabel,
+        note: meta.endpointLabelKo,
+      },
+      {
+        item: "Expected mean difference",
+        value: formatDisplayNumber(inputs.expectedValue),
+        note: "Planned average paired difference (bias)",
+      },
+      {
+        item: "SD of paired differences",
+        value: formatDisplayNumber(inputs.standardDeviation),
+        note: "Pilot or historical estimate of variability in paired differences",
+      },
+      {
+        item: "Maximum allowed difference",
+        value: formatDisplayNumber(inputs.benchmarkValue),
+        note: "Clinical agreement limit Δ",
+      },
+      {
+        item: "Two-sided alpha",
+        value: formatDisplayNumber(inputs.alpha),
+        note: "Confidence level applied to the LoA interval",
+      },
+      {
+        item: "Power",
+        value: formatPercentValue(inputs.power),
+        note: "Target probability of demonstrating agreement",
+      },
+      {
+        item: "Dropout rate",
+        value: formatPercentValue(inputs.dropout),
+        note: "Expected loss before the final analyzable dataset",
+      },
+    ];
+
+    if (result.metrics?.expectedUpperLoA !== undefined) {
+      rows.push({
+        item: "Expected upper LoA",
+        value: formatDisplayNumber(result.metrics.expectedUpperLoA),
+        note: "Upper limit of agreement implied by the expected bias and SD",
+      });
+    }
+
+    if (result.metrics?.criticalLoA !== undefined) {
+      rows.push({
+        item: "Critical |LoA|",
+        value: formatDisplayNumber(result.metrics.criticalLoA),
+        note: "Worst-case absolute limit of agreement used against the acceptable difference",
+      });
+    }
+
+    if (result.metrics?.agreementGap !== undefined) {
+      rows.push({
+        item: "Agreement gap",
+        value: formatDisplayNumber(result.metrics.agreementGap),
+        note: "Remaining distance between the acceptable difference and the worst-case |LoA|",
+      });
+    }
+
+    if (inputs.designEffect !== undefined) {
+      rows.push({
+        item: "Design effect",
+        value: formatDisplayNumber(inputs.designEffect, 2),
+        note: "Cluster inflation for site, reader, exam, or frame-level dependence",
+      });
+    }
+
+    if (inputs.subgroupCount !== undefined) {
+      rows.push({
+        item: "Protected subgroups",
+        value: formatCount(inputs.subgroupCount),
+        note: "Number of key subgroups planned for separate coverage review",
+      });
+    }
+
+    if (inputs.minCasesPerSubgroup !== undefined) {
+      rows.push({
+        item: "Minimum cases per subgroup",
+        value: formatCount(inputs.minCasesPerSubgroup),
+        note: "Floor applied to preserve minimum subgroup analyzability",
+      });
+    }
+
+    if (inputs.referenceReviewFailureRate !== undefined) {
+      rows.push({
+        item: "Reference review failure rate",
+        value: formatPercentValue(inputs.referenceReviewFailureRate),
+        note: "Loss due to missing, equivocal, or failed truth adjudication",
+      });
+    }
+
+    if (result.metrics?.rawSample !== undefined) {
+      rows.push({
+        item: "Raw sample size",
+        value: formatDisplayNumber(result.metrics.rawSample, 4),
+        note: "Direct formula output before rounding and operational inflation",
+      });
+    }
+
+    if (guidancePlanning) {
+      rows.push({
+        item: "Guidance planning target",
+        value: formatCount(guidancePlanning.finalPlanningCases),
+        note: "Final recommendation after clustering, review attrition, and subgroup floors",
+      });
+    }
+
+    return rows;
+  }
+
   const rows = [
     {
       item: "Category",
@@ -3618,6 +4547,10 @@ function renderSummaryMetrics(metrics) {
     "estimatedTotalCases",
     "adjustedCases",
     "adjustedTotalCases",
+    "expectedUpperLoA",
+    "criticalLoA",
+    "maxAllowedDifference",
+    "agreementGap",
     "nonInferiorityThreshold",
     "rawSample",
   ];
@@ -3630,6 +4563,10 @@ function renderSummaryMetrics(metrics) {
     estimatedTotalCases: "총 케이스 환산 / Estimated total",
     adjustedCases: "목표 모집 수 / Target enrollment",
     adjustedTotalCases: "목표 모집 수 / Target enrollment",
+    expectedUpperLoA: "예상 upper LoA / Expected upper LoA",
+    criticalLoA: "worst-case |LoA| / Critical |LoA|",
+    maxAllowedDifference: "허용 차이 Δ / Allowed difference",
+    agreementGap: "허용 여유 / Agreement gap",
     nonInferiorityThreshold: "비열등성 한계값 / NI threshold",
     rawSample: "원계산 n / Raw n",
   };
@@ -3759,6 +4696,21 @@ function buildRegulatoryText(context) {
 
 function buildMethodPresentation(context) {
   const { meta } = context;
+
+  if (meta.family === "bland-altman") {
+    return {
+      name: "Bland-Altman agreement design",
+      nameKo: "Bland-Altman limits of agreement 기반 일치도 설계",
+      nameEn: "Bland-Altman limits-of-agreement design",
+      summary:
+        "paired difference의 평균과 표준편차를 이용해 upper limit of agreement의 신뢰구간이 사전 정의한 허용 차이 Δ 안에 들어오도록 필요한 샘플 수를 근사 계산합니다.",
+      hypothesis: "Agreement goal: Upper LoA CI < Δ and Lower LoA CI > -Δ",
+      formula:
+        "Upper LoA = |d̄| + 1.96s, SE(LoA) ≈ √(3s² / n), n ≈ 3((z<sub>1-α/2</sub> + z<sub>1-β</sub>) × s / (Δ - |d̄| - 1.96s))²",
+      figureCaption:
+        "Expected upper and lower limits of agreement should remain inside the clinically acceptable difference band as the confidence interval narrows with increasing sample size.",
+    };
+  }
 
   if (meta.family === "auc") {
     return {
@@ -3917,6 +4869,79 @@ function buildParameterRows(context) {
 
 function renderTheoryFigure(context) {
   const { inputs, result, meta } = context;
+  if (meta.family === "bland-altman") {
+    const allowedDifference = result.metrics?.maxAllowedDifference;
+    const expectedUpperLoA = result.metrics?.expectedUpperLoA;
+    const expectedLowerLoA = result.metrics?.expectedLowerLoA;
+    const expectedBias = result.metrics?.expectedBias;
+
+    if (
+      allowedDifference === undefined ||
+      expectedUpperLoA === undefined ||
+      expectedLowerLoA === undefined ||
+      expectedBias === undefined
+    ) {
+      return "";
+    }
+
+    const markers = [
+      { label: "-Δ", value: -allowedDifference, color: "#b54f2c" },
+      { label: "Lower LoA", value: expectedLowerLoA, color: "#244466" },
+      { label: "Bias", value: expectedBias, color: "#0f6d63" },
+      { label: "Upper LoA", value: expectedUpperLoA, color: "#244466" },
+      { label: "+Δ", value: allowedDifference, color: "#b54f2c" },
+    ];
+    const axis = computeAxisRange(markers.map((marker) => marker.value));
+    const startX = 64;
+    const endX = 676;
+    const axisY = 108;
+    const topLabelY = 42;
+    const bottomLabelY = 186;
+    const width = 740;
+    const height = 220;
+    const mapX = (value) => startX + ((value - axis.min) / (axis.max - axis.min)) * (endX - startX);
+    const ticks = Array.from({ length: 5 }, (_, index) => axis.min + ((axis.max - axis.min) * index) / 4);
+    const badges = buildFigureBadges(context)
+      .map((badge) => `<span class="figure-badge">${escapeHtml(`${badge.label}: ${badge.value}`)}</span>`)
+      .join("");
+
+    const tickMarkup = ticks
+      .map((tick) => {
+        const x = mapX(tick);
+        return `
+          <line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="rgba(36, 68, 102, 0.35)" stroke-width="1.5" />
+          <text x="${x}" y="${axisY + 28}" text-anchor="middle" font-size="12" fill="#52606d">${escapeHtml(formatDisplayNumber(tick))}</text>
+        `;
+      })
+      .join("");
+
+    const markerMarkup = markers
+      .map((marker, index) => {
+        const x = mapX(marker.value);
+        const labelY = index % 2 === 0 ? topLabelY : bottomLabelY;
+        const connectorEndY = labelY < axisY ? axisY - 20 : axisY + 20;
+        return `
+          <line x1="${x}" y1="${connectorEndY}" x2="${x}" y2="${axisY}" stroke="${marker.color}" stroke-width="2" stroke-dasharray="4 4" />
+          <circle cx="${x}" cy="${axisY}" r="6" fill="${marker.color}" />
+          <text x="${x}" y="${labelY}" text-anchor="middle" font-size="13" font-weight="700" fill="${marker.color}">${escapeHtml(marker.label)}</text>
+          <text x="${x}" y="${labelY + 16}" text-anchor="middle" font-size="12" fill="#18222f">${escapeHtml(formatDisplayNumber(marker.value))}</text>
+        `;
+      })
+      .join("");
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Bland-Altman agreement concept figure">
+        <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="#ffffff" />
+        <line x1="${startX}" y1="${axisY}" x2="${endX}" y2="${axisY}" stroke="#244466" stroke-width="4" stroke-linecap="round" />
+        ${tickMarkup}
+        ${markerMarkup}
+        <text x="${startX}" y="26" font-size="12" fill="#52606d">${escapeHtml(meta.metricLabel)}</text>
+        <text x="${endX}" y="26" text-anchor="end" font-size="12" fill="#52606d">Agreement region: [-Δ, +Δ]</text>
+      </svg>
+      ${badges ? `<div class="figure-meta">${badges}</div>` : ""}
+    `;
+  }
+
   const threshold = result.metrics?.nonInferiorityThreshold;
   if (threshold === undefined) {
     return "";
@@ -4038,6 +5063,27 @@ function buildFigureBadges(context) {
     });
   }
 
+  if (meta.family === "bland-altman" && result.metrics?.expectedUpperLoA !== undefined) {
+    badges.push({
+      label: "Upper LoA",
+      value: formatDisplayNumber(result.metrics.expectedUpperLoA),
+    });
+  }
+
+  if (meta.family === "bland-altman" && result.metrics?.criticalLoA !== undefined) {
+    badges.push({
+      label: "Critical |LoA|",
+      value: formatDisplayNumber(result.metrics.criticalLoA),
+    });
+  }
+
+  if (meta.family === "bland-altman" && result.metrics?.maxAllowedDifference !== undefined) {
+    badges.push({
+      label: "Allowed diff",
+      value: formatDisplayNumber(result.metrics.maxAllowedDifference),
+    });
+  }
+
   return badges;
 }
 
@@ -4131,7 +5177,11 @@ function clampNumber(value, min, max) {
 }
 
 function formatMetricValue(key, value) {
-  if (["rawSample", "nonInferiorityThreshold"].includes(key)) {
+  if (
+    ["rawSample", "nonInferiorityThreshold", "expectedUpperLoA", "expectedLowerLoA", "criticalLoA", "maxAllowedDifference", "agreementGap"].includes(
+      key
+    )
+  ) {
     return formatDisplayNumber(value, key === "rawSample" ? 4 : 3);
   }
 

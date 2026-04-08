@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
   --bg: #edf2f4;
   --bg-strong: #e4eaee;
@@ -11,6 +13,7 @@
   --muted-strong: #435767;
   --line: rgba(18, 33, 45, 0.12);
   --line-strong: rgba(18, 33, 45, 0.18);
+  --line-accent: rgba(15, 127, 99, 0.22);
   --accent: #0f7f63;
   --accent-deep: #0d5d4f;
   --accent-soft: #edf6f2;
@@ -20,6 +23,7 @@
   --shadow-xl: 0 34px 76px rgba(17, 33, 45, 0.12);
   --shadow-lg: 0 20px 44px rgba(17, 33, 45, 0.09);
   --shadow-sm: 0 10px 24px rgba(17, 33, 45, 0.06);
+  --glow-accent: 0 0 32px rgba(15, 127, 99, 0.18);
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 18px;
@@ -165,6 +169,73 @@ h3 {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink);
+}
+
+.workspace-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.theme-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.theme-switcher-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-switcher-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.theme-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.theme-button:hover,
+.theme-button:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.theme-button[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--surface-strong), var(--surface-strong-2));
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
 }
 
 .workspace-meta {
@@ -414,6 +485,34 @@ h3 {
   gap: 16px;
 }
 
+.protocol-form-section {
+  grid-column: 1 / -1;
+  padding: 18px 20px;
+  border: 1px solid rgba(18, 33, 45, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(13, 36, 52, 0.05), rgba(255, 255, 255, 0.98));
+}
+
+.protocol-form-section-kicker {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.protocol-form-section h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.protocol-form-section p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
 .protocol-form label {
   display: flex;
   flex-direction: column;
@@ -425,6 +524,10 @@ h3 {
   color: var(--ink);
   font-weight: 700;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.protocol-form label.is-wide {
+  grid-column: 1 / -1;
 }
 
 .protocol-form label:hover {
@@ -444,6 +547,12 @@ h3 {
   background: #ffffff;
   color: var(--ink);
   box-shadow: inset 0 1px 2px rgba(18, 33, 45, 0.04);
+}
+
+.protocol-form textarea {
+  min-height: 116px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
 .protocol-form input:focus,
@@ -487,6 +596,42 @@ h3 {
 
 .protocol-output-card.is-generated {
   animation: fade-up 0.28s ease both;
+}
+
+.protocol-glossary-card {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 8;
+  margin-top: 22px;
+  padding: 30px 32px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 249, 250, 0.94));
+}
+
+.protocol-glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.protocol-glossary-item {
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(18, 33, 45, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(17, 33, 45, 0.04);
+}
+
+.protocol-glossary-item h3 {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+  color: var(--ink);
+}
+
+.protocol-glossary-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 .protocol-output-header {
@@ -1029,6 +1174,7 @@ h3 {
 }
 
 .calculator-panel {
+  min-width: 0;
   padding: 34px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 252, 0.93));
   animation-delay: 0.22s;
@@ -1109,6 +1255,7 @@ h3 {
 
 .tab-panel {
   display: none;
+  min-width: 0;
   padding: 26px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -1296,6 +1443,7 @@ h3 {
 
 .result-card {
   margin-top: 24px;
+  min-width: 0;
   padding: 22px;
   border: 1px solid rgba(15, 127, 99, 0.16);
   border-radius: 20px;
@@ -1449,6 +1597,7 @@ h3 {
 
 .result-section {
   margin-top: 22px;
+  min-width: 0;
   padding-top: 20px;
   border-top: 1px solid rgba(15, 127, 99, 0.12);
 }
@@ -1558,11 +1707,13 @@ h3 {
 }
 
 .parameter-table-wrap {
+  max-width: 100%;
   overflow-x: auto;
 }
 
 .parameter-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   border-radius: 14px;
   overflow: hidden;
@@ -1575,6 +1726,8 @@ h3 {
   border-bottom: 1px solid rgba(18, 33, 45, 0.08);
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .parameter-table th {
@@ -1601,6 +1754,8 @@ h3 {
 .info-panel {
   position: sticky;
   top: 20px;
+  z-index: 6;
+  align-self: start;
   display: grid;
   gap: 20px;
 }
@@ -1652,6 +1807,367 @@ h3 {
   background: rgba(154, 116, 48, 0.08);
 }
 
+html[data-theme="neo-dark"] {
+  --bg: #070b14;
+  --bg-strong: #0b1020;
+  --surface: rgba(14, 21, 37, 0.92);
+  --surface-solid: #0e1525;
+  --surface-muted: #131c30;
+  --surface-strong: #192338;
+  --surface-strong-2: #1d2840;
+  --ink: #e8edf8;
+  --muted: #7a8ba8;
+  --muted-strong: #9aaac4;
+  --line: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --line-accent: rgba(14, 216, 160, 0.22);
+  --accent: #0ed8a0;
+  --accent-deep: #09a879;
+  --accent-soft: rgba(14, 216, 160, 0.08);
+  --signal: #f5c542;
+  --signal-soft: rgba(245, 197, 66, 0.1);
+  --danger: #ff6b7a;
+  --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.28);
+  --glow-accent: 0 0 32px rgba(14, 216, 160, 0.2);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  color-scheme: dark;
+}
+
+html[data-theme="neo-dark"] body {
+  font-family: "Sora", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% -5%, rgba(14, 216, 160, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 5%, rgba(110, 124, 255, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 60% at 50% 100%, rgba(14, 216, 160, 0.04) 0%, transparent 60%);
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="neo-dark"] body::before {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
+}
+
+html[data-theme="neo-dark"] body::after {
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  opacity: 0.7;
+}
+
+html[data-theme="neo-dark"] h1,
+html[data-theme="neo-dark"] h2 {
+  font-family: "Sora", "Noto Sans KR", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+html[data-theme="neo-dark"] h1 {
+  font-weight: 800;
+  line-height: 0.96;
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+html[data-theme="neo-dark"] .workspace-kicker,
+html[data-theme="neo-dark"] .section-kicker,
+html[data-theme="neo-dark"] .card-label,
+html[data-theme="neo-dark"] .eyebrow,
+html[data-theme="neo-dark"] .workspace-tool-kicker,
+html[data-theme="neo-dark"] .tool-strip-label,
+html[data-theme="neo-dark"] .hero-note-label,
+html[data-theme="neo-dark"] .example-kicker,
+html[data-theme="neo-dark"] .doc-lang {
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .page-nav,
+html[data-theme="neo-dark"] .workspace-bar,
+html[data-theme="neo-dark"] .workspace-tools {
+  border-color: var(--line);
+  background: rgba(13, 21, 37, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="neo-dark"] .page-nav-link {
+  color: var(--muted);
+}
+
+html[data-theme="neo-dark"] .page-nav-link:hover,
+html[data-theme="neo-dark"] .page-nav-link:focus-visible {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="neo-dark"] .page-nav-link.active {
+  background: linear-gradient(135deg, var(--surface-strong), var(--surface-strong-2));
+  border-color: var(--line-accent);
+  color: var(--accent);
+  box-shadow: 0 2px 12px rgba(14, 216, 160, 0.14);
+}
+
+html[data-theme="neo-dark"] .theme-switcher-label {
+  color: var(--muted-strong);
+}
+
+html[data-theme="neo-dark"] .theme-switcher-options {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="neo-dark"] .theme-button {
+  color: var(--muted-strong);
+}
+
+html[data-theme="neo-dark"] .theme-button:hover,
+html[data-theme="neo-dark"] .theme-button:focus-visible {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="neo-dark"] .theme-button[aria-pressed="true"] {
+  border-color: var(--line-accent);
+  background: linear-gradient(135deg, rgba(14, 216, 160, 0.18), rgba(14, 216, 160, 0.08));
+  color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .workspace-chip {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-strong);
+  box-shadow: none;
+}
+
+html[data-theme="neo-dark"] .workspace-chip.is-accent {
+  border-color: var(--line-accent);
+  background: linear-gradient(135deg, rgba(14, 216, 160, 0.18), rgba(14, 216, 160, 0.08));
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .workspace-chip.is-muted {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+
+html[data-theme="neo-dark"] .workspace-chip:hover,
+html[data-theme="neo-dark"] .workspace-chip:focus-visible {
+  border-color: var(--line-accent);
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .workspace-chip[aria-pressed="true"] {
+  border-color: var(--accent-deep);
+  background: linear-gradient(135deg, rgba(14, 216, 160, 0.24), rgba(9, 168, 121, 0.14));
+  color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .workspace-tool-panel,
+html[data-theme="neo-dark"] .hero-card,
+html[data-theme="neo-dark"] .calculator-panel,
+html[data-theme="neo-dark"] .info-card,
+html[data-theme="neo-dark"] .protocol-hero-card,
+html[data-theme="neo-dark"] .protocol-planner-panel,
+html[data-theme="neo-dark"] .protocol-output-card,
+html[data-theme="neo-dark"] .protocol-glossary-card,
+html[data-theme="neo-dark"] .tab-panel,
+html[data-theme="neo-dark"] .tool-strip-card,
+html[data-theme="neo-dark"] .hero-note,
+html[data-theme="neo-dark"] .example-card,
+html[data-theme="neo-dark"] .reference-card,
+html[data-theme="neo-dark"] .dynamic-help,
+html[data-theme="neo-dark"] .summary-card,
+html[data-theme="neo-dark"] .doc-card,
+html[data-theme="neo-dark"] .inline-formula-card,
+html[data-theme="neo-dark"] .figure-card,
+html[data-theme="neo-dark"] .protocol-output-section,
+html[data-theme="neo-dark"] .protocol-flow-card,
+html[data-theme="neo-dark"] .checklist-progress-card,
+html[data-theme="neo-dark"] .checklist-section,
+html[data-theme="neo-dark"] .checklist-item,
+html[data-theme="neo-dark"] .protocol-glossary-item,
+html[data-theme="neo-dark"] .protocol-form-section {
+  border-color: var(--line);
+  background: linear-gradient(180deg, rgba(14, 21, 37, 0.95), rgba(19, 28, 48, 0.92));
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="neo-dark"] .hero-copy,
+html[data-theme="neo-dark"] .protocol-hero-copy {
+  border-color: var(--line-accent);
+  background: linear-gradient(145deg, rgba(7, 11, 20, 0.98), rgba(13, 21, 37, 0.96));
+}
+
+html[data-theme="neo-dark"] .hero-copy::before,
+html[data-theme="neo-dark"] .protocol-hero-copy::before {
+  background:
+    radial-gradient(circle at top right, rgba(14, 216, 160, 0.14), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(110, 124, 255, 0.08), transparent 40%);
+}
+
+html[data-theme="neo-dark"] .hero-metric,
+html[data-theme="neo-dark"] .calc-form label,
+html[data-theme="neo-dark"] .protocol-form label {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+
+html[data-theme="neo-dark"] .calc-form label,
+html[data-theme="neo-dark"] .protocol-form label {
+  color: var(--ink);
+}
+
+html[data-theme="neo-dark"] .tool-strip-card:hover,
+html[data-theme="neo-dark"] .hero-metric:hover,
+html[data-theme="neo-dark"] .calc-form label:hover,
+html[data-theme="neo-dark"] .protocol-form label:hover,
+html[data-theme="neo-dark"] .summary-card:hover,
+html[data-theme="neo-dark"] .protocol-output-section:hover,
+html[data-theme="neo-dark"] .protocol-glossary-item:hover,
+html[data-theme="neo-dark"] .checklist-item:hover {
+  border-color: var(--line-accent);
+  background: rgba(14, 216, 160, 0.08);
+}
+
+html[data-theme="neo-dark"] .tabs {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html[data-theme="neo-dark"] .tab-button {
+  color: var(--muted);
+}
+
+html[data-theme="neo-dark"] .tab-button:hover,
+html[data-theme="neo-dark"] .tab-button:focus-visible {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="neo-dark"] .tab-button.active {
+  background: linear-gradient(135deg, rgba(14, 216, 160, 0.18), rgba(9, 168, 121, 0.1));
+  border-color: var(--line-accent);
+  color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .protocol-form input,
+html[data-theme="neo-dark"] .protocol-form select,
+html[data-theme="neo-dark"] .protocol-form textarea,
+html[data-theme="neo-dark"] .calc-form input,
+html[data-theme="neo-dark"] .calc-form select,
+html[data-theme="neo-dark"] .inline-formula-card code,
+html[data-theme="neo-dark"] .formula-block code {
+  border-color: var(--line-strong);
+  background: rgba(7, 11, 20, 0.8);
+  color: var(--ink);
+}
+
+html[data-theme="neo-dark"] .inline-formula-card code,
+html[data-theme="neo-dark"] .formula-block code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .protocol-form select option,
+html[data-theme="neo-dark"] .calc-form select option {
+  background: var(--surface-solid);
+  color: var(--ink);
+}
+
+html[data-theme="neo-dark"] .protocol-form input:focus,
+html[data-theme="neo-dark"] .protocol-form select:focus,
+html[data-theme="neo-dark"] .protocol-form textarea:focus,
+html[data-theme="neo-dark"] .calc-form input:focus,
+html[data-theme="neo-dark"] .calc-form select:focus {
+  border-color: var(--accent-deep);
+  box-shadow: 0 0 0 3px rgba(14, 216, 160, 0.14);
+}
+
+html[data-theme="neo-dark"] .primary-button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: #000000;
+  box-shadow: 0 8px 24px rgba(14, 216, 160, 0.32);
+}
+
+html[data-theme="neo-dark"] .primary-button:hover,
+html[data-theme="neo-dark"] .primary-button:focus-visible {
+  box-shadow: 0 12px 32px rgba(14, 216, 160, 0.42);
+}
+
+html[data-theme="neo-dark"] .secondary-button {
+  border-color: var(--line-accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .secondary-button:hover,
+html[data-theme="neo-dark"] .secondary-button:focus-visible {
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .result-card {
+  border-color: var(--line-accent);
+  background: linear-gradient(135deg, rgba(14, 216, 160, 0.06), rgba(9, 168, 121, 0.03));
+  box-shadow: var(--glow-accent);
+}
+
+html[data-theme="neo-dark"] .result-card::before,
+html[data-theme="neo-dark"] .server-status {
+  border-color: var(--line-accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .server-status.disconnected {
+  border-color: rgba(255, 107, 122, 0.25);
+  background: rgba(255, 107, 122, 0.1);
+  color: var(--danger);
+}
+
+html[data-theme="neo-dark"] .parameter-table {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+html[data-theme="neo-dark"] .parameter-table th {
+  background: rgba(14, 216, 160, 0.07);
+  color: var(--accent);
+}
+
+html[data-theme="neo-dark"] .parameter-table td {
+  border-bottom-color: var(--line);
+  color: var(--ink);
+}
+
+html[data-theme="neo-dark"] .warning-card {
+  border-color: rgba(245, 197, 66, 0.2);
+  background: linear-gradient(180deg, rgba(245, 197, 66, 0.05), rgba(255, 255, 255, 0.01));
+}
+
+html[data-theme="neo-dark"] .warning-card .section-kicker {
+  color: var(--signal);
+}
+
+html[data-theme="neo-dark"] .warning-card .formula-block code {
+  background: rgba(245, 197, 66, 0.05);
+  color: var(--signal);
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -1680,6 +2196,11 @@ h3 {
   }
 
   .workspace-tool-actions {
+    justify-content: flex-start;
+  }
+
+  .workspace-bar-actions,
+  .theme-switcher {
     justify-content: flex-start;
   }
 
@@ -1738,6 +2259,15 @@ h3 {
 
   .workspace-tool-actions {
     display: grid;
+  }
+
+  .workspace-bar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .theme-switcher {
+    justify-content: flex-start;
   }
 
   .protocol-action-row {

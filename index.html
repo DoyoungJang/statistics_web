@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>의료기기 인허가 통계 계산기</title>
+  <script>
+    (function () {
+      try {
+        var theme = window.localStorage.getItem("statistics-web:theme");
+        if (theme) {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        // Ignore theme bootstrap failures.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="page page-core">
@@ -20,23 +32,32 @@
         <p class="workspace-kicker">Strategy Analytics Suite</p>
         <p class="workspace-title">Regulatory Decision Support Workspace</p>
       </div>
-      <div class="workspace-meta" aria-label="워크스페이스 기능">
+      <div class="workspace-bar-actions">
+        <div class="theme-switcher" aria-label="디자인 선택">
+          <span class="theme-switcher-label">Design</span>
+          <div class="theme-switcher-options" role="group" aria-label="디자인 테마">
+            <button class="theme-button" type="button" data-theme-option="executive-classic" aria-pressed="false">Executive</button>
+            <button class="theme-button" type="button" data-theme-option="neo-dark" aria-pressed="false">Neo Dark</button>
+          </div>
+        </div>
+        <div class="workspace-meta" aria-label="워크스페이스 기능">
         <button class="workspace-chip is-accent active" type="button" data-workspace-mode="executive" aria-pressed="true">
-          Executive Tooling
+          요약/이동
         </button>
         <button class="workspace-chip" type="button" data-workspace-mode="protocol" aria-pressed="false">
-          Protocol Planning
+          계획 적용
         </button>
         <button class="workspace-chip is-muted" type="button" data-workspace-mode="pilot" aria-pressed="false">
-          Internal Pilot
+          예시/초기화
         </button>
+      </div>
       </div>
     </div>
 
     <section class="workspace-tools" aria-label="워크스페이스 도구">
       <article class="workspace-tool-panel active" data-workspace-panel="executive">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Executive Tooling</p>
+          <p class="workspace-tool-kicker">요약/이동</p>
           <h2>핵심 브리핑과 빠른 이동</h2>
           <p>현재 활성 계산 기준으로 요약 텍스트를 복사하고, 계산 입력 구역이나 핵심 가정 영역으로 바로 이동할 수 있습니다.</p>
         </div>
@@ -52,7 +73,7 @@
 
       <article class="workspace-tool-panel" data-workspace-panel="protocol">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Protocol Planning</p>
+          <p class="workspace-tool-kicker">계획 적용</p>
           <h2>활성 계산기에 계획 프리셋 적용</h2>
           <p>현재 선택한 계산기 기준으로 baseline 또는 high-assurance 기본값을 적용하고, 공식 영역으로 바로 점프할 수 있습니다.</p>
         </div>
@@ -68,7 +89,7 @@
 
       <article class="workspace-tool-panel" data-workspace-panel="pilot">
         <div class="workspace-tool-copy">
-          <p class="workspace-tool-kicker">Internal Pilot</p>
+          <p class="workspace-tool-kicker">예시/초기화</p>
           <h2>데모 입력과 상태 점검</h2>
           <p>활성 계산기의 예시값을 불러오고 결과 카드를 초기화하거나 서버 연결 상태를 다시 확인할 수 있습니다.</p>
         </div>
@@ -334,6 +355,65 @@
           </p>
         </section>
       </aside>
+
+      <section class="info-card protocol-glossary-card" aria-label="기본 통계 계산 전문 용어 설명">
+        <div class="section-heading">
+          <p class="section-kicker">Glossary</p>
+          <h2>기본 통계 계산 전문 용어 설명</h2>
+          <p>기본 샘플 수 계산에서 자주 나오는 통계 용어를 한국어 기준으로 짧게 정리한 설명입니다.</p>
+        </div>
+
+        <div class="protocol-glossary-grid">
+          <article class="protocol-glossary-item">
+            <h3>Alpha</h3>
+            <p>유의수준입니다. 실제로 차이가 없는데 차이가 있다고 잘못 결론낼 확률을 뜻하며, 보통 0.05를 많이 사용합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Power</h3>
+            <p>검정력입니다. 실제 차이가 있을 때 그 차이를 통계적으로 찾아낼 확률을 의미하며, 80% 또는 90%를 자주 사용합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Effect Size</h3>
+            <p>연구에서 검출하고 싶은 차이의 크기입니다. 비율 차이, 평균 차이, 위험비 차이처럼 연구 질문에 따라 정의가 달라집니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Confidence Interval</h3>
+            <p>추정값의 불확실성을 범위로 보여주는 구간입니다. 보통 95% 신뢰구간을 사용하며, 표본 수가 많을수록 일반적으로 더 좁아집니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Margin of Error</h3>
+            <p>추정 오차 허용 범위입니다. 단일 비율 추정에서 원하는 정밀도를 뜻하며, 이 값이 작을수록 더 많은 표본이 필요합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Standard Deviation</h3>
+            <p>자료가 평균 주변에서 얼마나 퍼져 있는지를 나타내는 값입니다. 평균 비교 샘플 수 계산에서 매우 중요한 입력값입니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>P-value</h3>
+            <p>귀무가설이 맞다고 가정했을 때 지금과 같은 결과가 관찰될 확률입니다. 작을수록 우연만으로 설명하기 어렵다고 해석합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Dropout Rate</h3>
+            <p>추적 중 탈락하거나 최종 분석에 포함되지 못할 비율입니다. 실제 모집 수는 계산된 최소 표본 수보다 이 비율만큼 더 늘려 잡습니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>One-sided / Two-sided</h3>
+            <p>가설을 한 방향만 볼지, 양쪽 방향 모두 볼지를 정하는 설정입니다. 비열등성은 one-sided, 일반 차이 검정은 two-sided가 흔합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Paired Design</h3>
+            <p>같은 대상에서 두 측정값을 비교하는 설계입니다. 독립 표본 설계와 샘플 수 계산식이 다르므로 별도로 다뤄야 합니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Non-inferiority Margin</h3>
+            <p>새 방법이 기존 방법보다 어느 정도까지는 덜 좋아도 허용할지 정한 한계값입니다. 비열등성 연구에서 핵심 기준이 됩니다.</p>
+          </article>
+          <article class="protocol-glossary-item">
+            <h3>Equivalence</h3>
+            <p>두 방법이 충분히 비슷하다는 것을 보이는 개념입니다. 한쪽만 보는 비열등성과 달리 양쪽 경계 안에 들어오는지를 봅니다.</p>
+          </article>
+        </div>
+      </section>
     </main>
   </div>
 
