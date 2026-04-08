@@ -1,0 +1,380 @@
+===== PAGE 1 =====
+DE GRUYTER The International Journal of Biostatistics. 2016; 20150039
+Meng-Jie Lu1 / Wei-Hua Zhong1 / Yu-Xiu Liu1 / Hua-Zhang Miao1 / Yong-Chang Li1 / Mu-Huo Ji2
+Sample Size for Assessing Agreement between
+Two Methods of Measurement by Bland−Altman
+Method
+1 Department of Medical Statistics, Jinling Hospital, Southern Medical University, 305 East Zhongshan Road, Nanjing 210002,
+China, E-mail: 898545969@qq.com, 1396689590@qq.com, liu_yuxiu@163.com, miaohuazhang@qq.com, lycnjzy@163.com
+2 Department of Anesthesiology, Jinling Hospital, Nanjing University, Nanjing 210002, China, E-mail: jimuhuo2009@sina.com
+Abstract:
+The Bland–Altman method has been widely used for assessing agreement between two methods of measure-
+ment. However, it remains unsolved about sample size estimation. We propose a new method of sample size
+estimation for Bland –Altman agreement assessment. According to the Bland –Altman method, the conclusion
+on agreement is made based on the width of the conﬁdence interval for LOAs (limits of agreement) in compari-
+son to predeﬁned clinical agreement limit. Under the theory of statistical inference, the formulae of sample size
+estimation are derived, which depended on the pre-determined level of α, β, the mean and the standard devi-
+ation of diﬀerences between two measurements, and the predeﬁned limits. With this new method, the sample
+sizes are calculated under diﬀerent parameter settings which occur frequently in method comparison studies,
+and Monte-Carlo simulation is used to obtain the corresponding powers. The results of Monte-Carlo simulation
+showed that the achieved powers could coincide with the pre-determined level of powers, thus validating the
+correctness of the method. The method of sample size estimation can be applied in the Bland –Altman method
+to assess agreement between two methods of measurement.
+Keywords: Bland-Altman method, limits of agreement, method comparison study , Monte-Carlo simulation, sam-
+ple size estimation
+DOI: 10.1515/ijb-2015-0039
+1 Introduction
+The original article by Bland and Altman [1] which proposed the method of agreement analysis has received
+more than 30,000 citations in the biomedical literature and has increased in usage in recent years. Nature asked
+Thomson Reuters, which now owns the SCI, to list the 100 most highly cited papers of all time. The third most
+frequently cited statistics paper (number 29) is a 1986 publication by British statisticians Martin Bland and
+Douglas Altman who proposed a technique – now known as the Bland –Altman plot [2]. It has been stressed
+that estimates of limits of agreement (LOAs) should be accompanied with conﬁdence intervals. However, they
+found that “conﬁdence intervals are seldom quoted” in reports of method comparison studies [3–5]. A reporting
+standards for Bland–Altman agreement analysis in laboratory research found that the CI limits of LOAs were
+reported in only 6 % of 50 studies published later than 2012 [6]. Many researchers forget that Bland and Altman
+presented the limits of agreement as a reference interval only. The LOAs do not guarantee coverage on the range
+of potential diﬀerences between the two measurements and cannot be used directly for statistical inference.
+Just as Hamilton and Stamey pointed out, the Bland –Altman limits of agreement by themselves provide only
+a reference interval and should never be used as the determining factor to conclude agreement between two
+methods [7]. They informed that future researchers should take this variability into account and always provide
+conﬁdence intervals when using the LOAs approach. Like any other clinical trials, it is essential to determine
+the sample size for method comparison studies [8]. Although Bland has given the sample size for a study of
+agreement between two methods of measurement which were available from his website [9], the sample size
+was determined without considering the power of the statistical procedure and could not guarantee the power
+of test. Sample size calculations were performed in only 30  % of publications reviewed [6]. Bland and Altman
+hoped to ﬁnd time to publish some of these, for example, on sample size estimation for measurement method
+agreement studies, but up to now it is still not solved satisfactorily [3].
+In this paper we propose a method to calculate sample size for Bland –Altman method, and Monte-Carlo
+simulations are used to validate the correctness of the method. In Section 2, we introduce the assumptions
+Yu-Xiu Liuis the corresponding author.
+© 2016 Walter de Gruyter GmbH, Berlin/Boston.
+
+===== PAGE 2 =====
+Lu et al. DE GRUYTER
+and theory of Bland –Altman method. Section 3 focuses on the derivation of the new method of sample size
+estimation for Bland –Altman method. In Section 4, Monte-Carlo simulation is used to obtain the correspond-
+ing powers. The results of Monte-Carlo simulation showed that the achieved powers could coincide with the
+pre-determined level of powers, thus validating the correctness of the method. In Section 5, we show a clinical
+worked example from a set of measured data of free prostate speciﬁc antigen (FPSA), which is often used to
+evaluate the presence of prostate cancer and other prostate disorders. We give concluding remarks in Section
+6.
+2 Method
+2.1 Assumptions
+Suppose that the measurements of two methods are made on each of n subjects drawn from some population
+of interest. Suppose further that the two measurements, 𝑥uand 𝑦urespectively and the diﬀerence, 𝑑ufor subject
+i (i=1,2, …, n)
+𝑑u= 𝑥 u− 𝑦u
+The important ﬁrst step of the Bland–Altman method is to plot the data and to check its pattern and distribution.
+The diﬀerences for the two methods are plotted against their means and if the data are well-behaved, then
+construction of the various limits and interpretation of the data is simple and straightforward. The assumptions
+of the limits of the agreement method are that the diﬀerences values resulting from two measurements should
+have an approximately normal distribution, constant variance of the diﬀerences, and no proportional bias [10].
+Proportional bias is present when the diﬀerences increase or decrease in proportion to the average values [11].
+2 LOAs and conﬁdence interval estimation
+Suppose diﬀerence variable 𝐷 is a random variable which follows a normal distribution with mean μ and
+variance σ2. It is well-known that 100(1 −γ) % of the population lies between 𝜇 ± 𝑧 1−u/2𝜎. In practice, both μ
+and σ are unknown and have to be estimated. We take ̄𝐷 and 𝑆2
+uas estimators of μ and σ2 respectively.
+The 100(1 − 𝛾)%LOAs can be calculated as
+̄𝐷 ± 𝑧1−u/2𝑆u
+where 𝑧1−u/2 is the cumulative 100(1 −γ/2)% percentile of a standard normal distribution, 𝑆u is the standard
+deviation of the diﬀerences, ̄𝐷 + 𝑧 1−u/2𝑆u is the upper limit value of LOA, and ̄𝐷 − 𝑧 1−u/2𝑆u is the lower
+limit value. 95 % LOAs are the most common, which are mean minus 1.96 standard deviations and mean plus
+1.96 standard deviations respectively. These limits are expected to contain 95  % of paired diﬀerences between
+measurements by the two methods.
+It is important to consider conﬁdence interval of LOAs [12]. The 100(1 − 𝛼)%conﬁdence interval estimation
+of 100(1 − 𝛾)%LOAs derived by Bland and Altman can be calculated as [1]
+𝐿𝑜𝑤𝑒𝑟 = ̄𝐷 − 𝑧1−u/2𝑆u− 𝑡1−u/2,u−1𝑆u
+√√√
+⎷
+1
+𝑛 +
+𝑧2
+1−u/2
+2(𝑛 −1) (1)
+𝑈𝑝𝑝𝑒𝑟 = ̄𝐷 + 𝑧1−u/2𝑆u+ 𝑡1−u/2,u−1𝑆u
+√√√
+⎷
+1
+𝑛 +
+𝑧2
+1−u/2
+2(𝑛 −1) (2)
+We can obtain the upper conﬁdence limit of upper limit of the LOAs and the lower conﬁdence limit of lower
+limit of the LOAs, wheren is the sample size. Generally , we set𝛾 and 𝛼 as 0.05. If the 95 % conﬁdence interval for
+the 95 % LOAs comes within the pre-deﬁned agreement limits which are clinically acceptable, the two methods
+agree suﬀiciently to fulﬁl the agreement requirements. In fact, the correspondence between conﬁdence intervals
+for LOAs and hypotheses tests here is identical. Providing A is the lower limit and B is the upper limit of LOAs
+of population diﬀerences, we can construct the following simultaneous hypotheses: H01 is A < –δ, H11 is A ≥ –δ
+and H02 is B > δ, H12 is B ≤ δ. When the two null hypotheses are rejected simultaneously , the two measurements
+would be inferred to agree. The hypotheses of Bland –Altman method are quite similar to the equivalence [13].
+
+===== PAGE 3 =====
+DE GRUYTER Lu et al.
+3 Sample size formulae
+Considering the conﬁdence interval estimation of LOAs has symmetry of μ and –μ (μ ≥ 0) and the sample size
+estimations of these two situations should be the same, we just discuss the situation when μ ≥ 0. According to
+the statistical inference principle of Bland –Altman limits of agreement, we can separate total type I error (𝛼)
+into two parts which are both 𝛼/2. Similarly , we can separate total type II error (𝛽)into two parts. One is the
+ﬁrst type II error (𝛽1)of the upper limit value of LOAs and the other is the second type II error (𝛽2)of the lower
+limit value of LOAs (Figure 1.) [13].
+Figure 1:
+We can get a direct estimate of 𝛽1 and 𝛽2:
+𝐷 + 𝑧 1−u/2𝑆u− 𝑧u1𝑠𝑒uuuu= 𝛿 + 𝑧 u/2𝑠𝑒uuuu
+𝐷 − 𝑧 1−u/2𝑆u+ 𝑧u2𝑠𝑒uuuu= −𝛿 − 𝑧 u/2𝑠𝑒uuuu
+𝛽1 = Φ (
+u+u1−u/2uu−u
+uuuuuu
+− 𝑧u/2)
+𝛽2 = Φ (
+−u+u1−u/2uu−u
+uuuuuu
+− 𝑧u/2)
+where Φ(•)is deﬁned as the cumulative density function of standard normal distribution 𝑁(0, 1), 𝑠𝑒uuus is the
+standard error of the lower limit or upper limit of LOAs, 𝑠𝑒uuuu= 𝑆 u√ 1
+u+
+u2
+1−u/2
+2(u−1) , 𝛿 is the maximum allowable
+diﬀerence that can be accepted clinically , it needs to be deﬁned in advance.
+According to the statistical distribution theory , it is best to calculate the type II error (𝛽)under the assump-
+tion of a non-central t-distribution [14], that is:
+𝛽1 = 1 − 𝑝𝑟𝑜𝑏𝑡 [𝑡1−u/2,u−1, 𝑛 − 1, 𝜏1] (3)
+𝛽2 = 1 − 𝑝𝑟𝑜𝑏𝑡 [𝑡1−u/2,u−1, 𝑛 − 1, 𝜏2] (4)
+where 𝑝𝑟𝑜𝑏𝑡 [•, 𝑛 − 1, 𝜏1] denotes the cumulative distribution function of a Student ’s non-central t-distribution
+with 𝑛 − 1 degrees of freedom and non-centrality parameter 𝜏1.
+The non-centrality parameters 𝜏1 and 𝜏2 are non-central parameters deﬁned as
+𝜏1 =
+𝛿 − ̄𝐷 − 𝑧1−u/2𝑆u
+𝑆u√ 1
+u+
+u2
+1−u/2
+2(u−1)
+.
+𝜏2 =
+𝛿 + ̄𝐷 − 𝑧1−u/2𝑆u
+𝑆u√ 1
+u+
+u2
+1−u/2
+2(u−1)
+.
+
+===== PAGE 4 =====
+Lu et al. DE GRUYTER
+We can get an estimate of the power:
+𝑝𝑜𝑤𝑒𝑟 = 1 − 𝛽 = 1 − (𝛽1 + 𝛽2)
+= 𝑝𝑟𝑜𝑏𝑡 (𝑡 1−u/2,u−1, 𝑛 − 1, 𝜏1) + 𝑝𝑟𝑜𝑏𝑡 (𝑡1−u/2,u−1, 𝑛 − 1, 𝜏2) (5)
+When 𝜇 = 0, the sample size calculation can be written as follows:
+𝑛 =
+(2 + 𝑧2
+1−u/2)[𝑡𝑖𝑛𝑣(1 − 𝛽/2, 𝑛 − 1, 𝑡1−u/2,u−1)]2𝑆2
+u
+2(𝑧1−u/2𝑆u− 𝛿)2 (6)
+where 𝑡𝑖𝑛𝑣(1 − 𝛽/2, 𝑛 − 1, 𝑡1−u/2,u−1)is deﬁned as the inverse of a Student ’s non-central t-distribution.
+In eq. (6), 𝑡𝑖𝑛𝑣(1 − 𝛽/2, 𝑛 − 1, 𝑡1−u/2,u−1)is related to sample size (𝑛), we need to use iterative method to
+calculate sample size. Firstly we replace non-central t-distribution quantile with standard normal distribution
+quantile to obtain the initial value (𝑛0), and then iterate step-by-step until 𝑛 reaches a stable value.
+When 𝜇 > 0, we ﬁrstly calculate by eq. (6) to obtain an initial value (𝑛1), then calculate by eq. (5) to achieve
+the power. If the estimated power is close enough to the pre-speciﬁed power then 𝑛 is the sample size that we
+want to estimate. Otherwise we make 𝑛1 equal to 𝑛1 + 1 and judge whether the estimated power is close enough
+the pre-speciﬁed power. Repeat the procedure above until be closest to but greater than the pre-speciﬁed power.
+Table 1 summaries reasonable estimates of the sample size using eqs (5) and (6) for various standardized diﬀer-
+ence limits (𝜇/𝜎), diﬀerent standardized agreement limits (𝛿/𝜎), and diﬀerent type II error (𝛽)assuming that
+the data are well-behaved.
+Table 1 can be a reference for clinical researchers to estimate the sample size in the agreement assessment
+trial between two methods of measurement.
+Table 1: Sample size (u)for Bland–Altman method with non-central t-distribution for diﬀerent standardized diﬀerence
+limits (u/u), diﬀerent standardized agreement limits (u/u), and diﬀerent type II error (u). (u =0.05).
+u/u u/u
+u 0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
+2.0 0.2 19,152
+2.1 0.2 1,570 14,307
+2.2 0.2 538 1,174 14,307
+2.3 0.2 271 403 1,174 14,307
+2.4 0.2 164 206 402 1,174 14,307
+2.5 0.2 110 128 203 402 1,174 14,307
+2.6 0.2 80 89 123 203 402 1,174 14,307
+2.7 0.2 61 66 84 123 203 402 1,174 14,307
+2.8 0.2 49 51 61 83 123 203 402 1,174 14,307
+2.9 0.2 40 42 48 61 83 123 203 402 1,174 14,307
+3.0 0.2 33 35 39 47 60 83 123 203 402 1,174
+2.0 0.1 23,685
+2.1 0.1 1,941 19,152
+2.2 0.1 665 1,570 19,152
+2.3 0.1 334 538 1,570 19,152
+2.4 0.1 202 271 538 1,570 19,152
+2.5 0.1 136 166 271 538 1,570 19,152
+2.6 0.1 99 113 164 271 538 1,570 19,152
+2.7 0.1 75 83 110 164 271 538 1,570 19,152
+2.8 0.1 60 64 80 110 164 271 538 1,570 19,152
+2.9 0.1 49 52 62 80 110 164 271 538 1,570 19,152
+3.0 0.1 41 43 49 61 80 110 164 271 538 1,570
+4 Simulation
+Monte-Carlo simulation studies with 10,000 replicates were performed to examine the validity and correctness
+of the proposed formulae for estimating sample size by calculating empirical powers. Simulation data were
+generated on the basis of normal distribution by considering typical situations under diﬀerent parameter set-
+
+===== PAGE 5 =====
+DE GRUYTER Lu et al.
+tings. If the achieved power is very close to the pre-speciﬁed power, then it could be proved that our formulae
+can estimate the reasonable sample size.
+As claimed above, simulating corresponding powers is easy: Firstly , we deﬁne the mean of diﬀerences (𝜇),
+the standard deviation of diﬀerences (𝜎)and the pre-deﬁned clinical agreement limit (𝛿). And then we estimate
+the sample size with eqs (5) and (6), and calculate the 95  % conﬁdence interval for the 95  % LOAs. If they lie
+within the pre-deﬁned clinical agreement limits (−𝛿, 𝛿), then we draw a conclusion that the two methods agree,
+otherwise disagree. We repeat the procedure above 10,000 times and compute the times(𝑡)that draw agreement
+conclusion. The value of u
+10000 × 100% is the achieved power. Table 2 presents the achieved power for diﬀerent
+parameter settings corresponding to the Table 1.
+Table 2 indicates that the achieved powers are generally close to the pre-speciﬁed power of 80  % or 90  %. It
+shows that the formulae give reasonable estimates of the sample size using eqs (5) and (6) for various parameter
+settings.
+Table 2: Power for Bland–Altman methods with non-central t-distribution for diﬀerent standardized diﬀerent limits
+(u/u), diﬀerent standardized agreement limits (u/u), and diﬀerent type II error (u). (u =0.05).
+u/u u/u
+u 0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
+2.0 0.2 81.42
+2.1 0.2 81.33 79.34
+2.2 0.2 81.49 79.05 80.29
+2.3 0.2 81.37 79.97 79.50 79.42
+2.4 0.2 81.55 80.10 79.45 80.04 80.21
+2.5 0.2 80.42 80.59 81.20 79.88 79.40 80.03
+2.6 0.2 81.34 80.32 78.75 78.91 79.23 79.76 79.57
+2.7 0.2 81.63 80.76 80.72 80.23 80.00 79.78 80.41 79.73
+2.8 0.2 82.48 81.26 79.06 79.24 78.73 80.79 78.98 79.08 79.61
+2.9 0.2 82.82 82.30 80.36 79.20 79.37 79.81 79.62 79.86 79.89 79.35
+3.0 0.2 82.38 82.12 81.16 79.71 78.83 79.69 79.58 79.66 79.46 80.23
+2.0 0.1 90.28
+2.1 0.1 90.38 90.19
+2.2 0.1 89.90 89.19 90.06
+2.3 0.1 90.11 90.91 89.43 89.46
+2.4 0.1 89.99 89.27 89.28 89.58 89.84
+2.5 0.1 89.35 89.76 89.60 90.23 89.35 90.22
+2.6 0.1 88.70 89.20 88.94 89.47 90.91 90.02 89.05
+2.7 0.1 89.80 89.07 89.43 90.16 89.44 89.77 90.16 89.39
+2.8 0.1 89.83 90.63 90.44 88.68 88.99 89.05 88.92 89.72 89.69
+2.9 0.1 90.05 89.72 89.52 88.74 89.15 89.34 89.12 89.07 90.26 89.60
+3.0 0.1 90.35 90.37 89.47 88.92 89.06 88.53 88.50 89.06 89.41 89.57
+Bland has given the sample size for a study of agreement between two methods of measurement which
+were available from his website [9]. In the 1986 L ancet paper they gave a formula for the conﬁdence interval for
+the 95 % limits of agreement. The standard error of the 95  % limit of agreement is approximately root (√3𝑠2/𝑛),
+where s is the standard deviation of the diﬀerences between measurements by the two methods and 𝑛 is the
+sample size. The conﬁdence interval is the estimate of the limit, ̄𝑑 plus or minus 1.96𝑠, plus or minus 1.96
+standard errors, then the sample size can be worked out.
+We set 𝛼 = 0.05, 𝛽 = 0.20, 𝜇 = − 0.4 0 .4, 𝜎 2 = 1, 𝛿 = 2.7, and pre-speciﬁed power = 80  %. Figure 2 shows
+the sample sizes and powers of B-A method and new method under diﬀerent parameter settings. With the
+Bland–Altman method, the sample size is calculated without considering the power of the statistical procedure,
+and so the probability of obtaining the required width is only 0.50. With the new method, the achieved power
+is generally close to the pre-speciﬁed power of 80  %.
+
+===== PAGE 6 =====
+Lu et al. DE GRUYTER
+Figure 2:
+The number of subjects required in the Bland –Altman method proposed by Bland is determined on the
+basis of the expected width of a conﬁdence interval. It fails to explicitly consider the probability of achieving the
+desired interval width and may thus provide sample sizes that are too small to have enough power. However,
+the new method is more appropriate, because it can ensure an adequate probability of achieving the desired
+precision.
+5 Example
+We show a clinical worked example from a set of measured data of free prostate speciﬁc antigen (FPSA), which
+is often used to evaluate the presence of prostate cancer and other prostate disorders. AIA-1800 and I2000
+methods were used to measure the FPSA. In the process of measurement, a same random sequence of sample
+was used in the two instruments [15]. Through a pre-experiment we get the mean and standard deviation
+of diﬀerences between AIA-1800 and I2000 methods are 0.001167 mmol/l and 0.001129 mmol/l respectively.
+Deﬁning 𝛼 = 0.05, 𝛽 = 0.20, (−𝛿, 𝛿) = (−0.004, 0.004)m𝑚𝑜𝑙/𝑙, we can calculate that a sample size of 83 would
+be needed to provide 80  % power to assess agreement between two methods of measurement. Monte-Carlo
+simulation is used to obtain the corresponding power which is equal to 80.51  %, closely to the pre-deﬁned
+power (80 %).
+6 Conclusion
+Based on the statistical inference principle and mathematical distribution theory , we have derived the calcu-
+lating formula of sample size for Bland –Altman method under diﬀerent parameter settings. For the sake of
+convenience, we have given a set of table which can be easily ﬁnd out the sample size for diﬀerent standardized
+diﬀerence limits (𝜇/𝜎), standardized agreement limits (𝛿/𝜎), and type error (𝛽)under two-sided 𝛼 = 0.05. Both
+α and β should be considered to have sample size large enough to ensure that the half width of a 100(1−α)% con-
+ﬁdence interval is no larger than a pre-speciﬁed width with a pre-speciﬁed assurance probability 100(1 −β)%.
+We carried out Monte-Caro simulation studies to validate the correctness of the proposed method. The sim-
+ulation results reveal that the achieved powers could coincide with the pre-determined level of powers, thus
+validating the correctness of the formulae.
+It is important to be aware of the pre-speciﬁed clinically acceptable agreement limits. As with equivalence
+or non-inferiority clinical trials, the clinical agreement limits need to be determined in advance by clinical re-
+searchers and biostatistician. Deﬁning these agreement limits may be a diﬀicult aspect in designing the mea-
+surement comparison studies, because they depend upon not only the clinical scenario but also other variables.
+
+===== PAGE 7 =====
+DE GRUYTER Lu et al.
+Nevertheless, an attempt must be made to deﬁne them; a Delphi survey (opinion from experts) may be used to
+design the study. This survey is a group facilitation technique, which is an iterative multistage process designed
+to transform an opinion into group consensus [16].
+Lin et al. [17] had discussed some issues about sample size using the tolerance interval; however, there are
+some deﬁciencies. First of all, in Lin ’s study , the hypothesis of the sample size calculating method is provided
+just under 𝜇 = 0, which is not considered for 𝜇 ≠ 0. In fact, the two measurements may not be perfectly
+consistent (𝜇 ≠ 0), but we still believe their consistency as the population diﬀerence within a certain acceptable
+range (δ). In Lin’s paper, it can be seen that the simulated power is consistently less than the pre-speciﬁed power
+for all design speciﬁcations, so the sample sizes are much under-estimated.
+Hahn and Meeker [18] deﬁned a tolerance interval that is an interval that one can claim to contain at least a
+speciﬁed proportion, p, of the population with a speciﬁed degree of conﬁdence, 100(1 –α)% and provided the
+sample size estimation about the tolerance interval. We can see that their sample size estimation is based on
+the desired precision without considering type II error ( β) or power, and just addresses the frequently asked
+question “How large a sample do I need to obtain a conﬁdence interval? ” Although our conﬁdence interval of
+LOAs is similar to their tolerance interval, the theories and the procedures of sample size estimation are totally
+diﬀerent. Our method of sample size estimation is derived not only on the pre-determined level of α but also
+on the β.
+Recently , studies of the agreement between two instruments or clinical tests have proliferated in ophthalmic
+literature. McAlinden et al. used a method of sample size calculation for agreement studies on the basis of
+method proposed by Bland [19]. The sample size was calculated without considering the power of the statisti-
+cal procedure, so the probability of obtaining the required width was only 0.50 [20]. During the study design
+stage, considering the power in sample size calculations could lead to expected conclusions under the predeter-
+mined power level. Cesana et al. provided another sample size estimation required for demonstrating a Pearson
+correlation coeﬀicient between the diﬀerences and the means of the measures [20], and we think this method is
+unreasonable. Actually , the correlation coeﬀicient given by Cesana reﬂected the proportional bias. As we know ,
+one of the assumptions about the application of the Bland –Altman method is no proportional bias. Without
+fulﬁllment of the assumption, this method would not be applicable.
+There are some limitations to this study. Our sample size formulae are just appropriate for the data which
+are well-behaved. If the data behavior is not very well, such as non-normality or non-constant variance of the
+diﬀerences (heteroscedasticity) and proportional bias, the formulae are not suitable to solve the problem of
+estimating sample size.
+Acknowledgement
+We are grateful for the constructive comments of Dr. Jian-Jun Yang. We also thank the editors and the anony-
+mous reviewers for valuable comments that have helped us signiﬁcantly improved our manuscript.
+Funding
+This study was funded by a grant from the National Natural Science Foundation of China (No.81473066).
+References
+[1] Bland JM, Altman DG. Statistical methods for assessing agreement between two methods of clinical measurement. Lancet.
+1986;i:307–310.
+[2] Noorden RV, Mahen B, Nuzzo R. The top 100 papers. Nature. 2014;514:550–553.
+[3] Bland JM, Altman DG. Agreed statistics measurement method comparison. Anesthesiology. 2012;116:182–185.
+[4] Bland JM, Altman DG. Measuring agreement in method comparison studies. Stat Methods Med Res. 1999;8:135–160.
+[5] Bland JM, Altman DG. Appling the right statistics: analyses of measurement studies. Ultrasound Obst Gyn. 2003;22:85–93.
+[6] Chhapola V, Kanwal SK, Brar R. Reporting standards for Bland–Altman agreement analysis in laboratory research: a cross-sectional sur-
+vey of current practice. Ann Clin Biochem. 2015;52:382–386.
+[7] Hamilton C, Stamey J. Using Bland−Altman to assess agreement between two medical devices-don’t forget the conﬁdence intervals!. J
+Clin Monit Comput. 2007;21:331–333.
+[8] Bella ML, Teixeira-Pintoc A, McKenzied JE, Oliviere J. A myriad of methods: calculated sample size for two proportions was dependent on
+the choice of sample size formula and so昀tware. J Clin Epidemiol. 2014;67:601–605.
+
+===== PAGE 8 =====
+Lu et al. DE GRUYTER
+[9] Bland JM. How can I decide the sample size for a study of agreement between two methods of measurement? Available at: http://www-
+users.york.ac.uk/ mb55/meas/sizemeth.htmAccessed: 15 Aug 2015.
+[10] Woodman RJ. Bland−Altman beyond the basics: creating conﬁdence with badly behaved data. Clin Exp Pharmacol Physiol.
+2010;37:141–142.
+[11] Ludbrook J. Conﬁdence in Altman-Bland plots: a critical review of the method of di昀ferences. Clin Exp Pharmacol Physiol.
+2010;37:143–149.
+[12] Stockl D, Cabaleiro DR, Uytfanghe KV, Thienpont LM. Interpreting method comparison studies by use of the Bland−Altman plot:
+refllecting the importance of sample size by incorporating conﬁdence limits and predeﬁned error limits in the graphic. Clin Chem.
+2004;50:2216–2218.
+[13] Julious SA. Sample size for clinical trials with Normal data. Stat Med. 2004;23:1921–1986.
+[14] Forbes C, Evans M, Hastings N, Peacock B. Statistical distributions, 4th ed Hoboken: John Wiley & Sons, 2011:187–188.
+[15] Zhou YH, Zang JJ, Wu MJ, Xu JF , He J. Allowable total error and limits for erroneous results (ATE/LER) zones for agreement measurement.
+J Clin Lab Anal. 2011;25:83–89.
+[16] Hasson F , Keeney S, Mckennna H. Research guidelines for the Delphi survey technique. J Adv Nurs. 2000;32:1008–1015.
+[17] Lin SC, Whipple DM, Ho CS. Evaluation of statistical equivalence using limits of agreement and associated sample size calculation. Com-
+mun Stat Theor Methods. 1998;27:1419–1432.
+[18] Hahn GJ, Meeker WQ. Statistical intervals– a guide for practitioners. New York: John Wiley & Sons, 1991:150–167.
+[19] McAlinden C, Khadka J, Pesudovs K. Statistical methods for conducting agreement (comparison of clinical tests) and precision (repeata-
+bility or reproducibility) studies in optometry and ophthalmology. Ophthalmic Physiol Opt. 2011;31:330–338.
+[20] Cesana BM, Antonelli P . Agreement analysis: further statistical insights. Ophthalmic Physiol Opt. 2012;32:436–440.
+

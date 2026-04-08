@@ -153,6 +153,27 @@ const metricConfigs = {
       exampleText:
         "예시: bootstrap SD 0.06을 가정하고 AI F1-score 0.89가 benchmark 0.92 대비 비열등한지 평가",
     },
+    precision: {
+      labels: {
+        expectedValue: "예상 Precision (PPV)",
+        benchmarkValue: "비교 기준 Precision (PPV)",
+        predictedPositiveRate: "예상 양성 판정 비율",
+      },
+      visibleFields: ["predictedPositiveRate"],
+      help: "Precision/PPV는 AI가 양성이라고 표시한 케이스 중 실제로 양성일 비율입니다. 예상 양성 판정 비율을 이용해 전체 케이스 수를 환산합니다.",
+      exampleValues: {
+        metric: "precision",
+        expectedValue: 0.84,
+        benchmarkValue: 0.87,
+        nonInferiorityMargin: 0.05,
+        alpha: 0.025,
+        power: 0.8,
+        predictedPositiveRate: 0.28,
+        dropout: 0.1,
+      },
+      exampleText:
+        "예시: 예상 양성 판정 비율 28%인 CAD 모델에서 Precision 0.84가 benchmark 0.87 대비 비열등한지 평가",
+    },
     npv: {
       labels: {
         expectedValue: "예상 NPV",
@@ -183,7 +204,7 @@ const metricConfigs = {
         standardDeviation: "케이스별 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "세그멘테이션 결과가 전체적으로 얼마나 잘 맞는지 보는 값입니다.",
+      help: "세그멘테이션 Accuracy는 케이스별 pixel accuracy 평균을 연속형 endpoint로 두고 계산합니다. 그래서 proportion 공식이 아니라 표준편차 입력이 필요한 mean 기반 설계를 사용합니다.",
       exampleValues: {
         metric: "accuracy",
         expectedValue: 0.94,
@@ -395,7 +416,7 @@ const metricConfigs = {
         standardDeviation: "오차 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "큰 오차에 더 민감하게 반응하는 오차 지표입니다. 낮을수록 좋습니다.",
+      help: "큰 오차에 더 민감하게 반응하는 오차 지표입니다. 낮을수록 좋습니다. 이 계산은 RMSE를 연속형 평균 endpoint로 보는 정규 근사 기반 planning입니다.",
       exampleValues: {
         metric: "rmse",
         expectedValue: 2.1,
@@ -416,7 +437,7 @@ const metricConfigs = {
         standardDeviation: "오차 표준편차",
       },
       visibleFields: ["standardDeviation"],
-      help: "오차를 퍼센트로 본 값입니다. 낮을수록 좋습니다.",
+      help: "오차를 퍼센트로 본 값입니다. 낮을수록 좋습니다. 다만 reference value가 0 또는 0에 가까우면 MAPE가 불안정해질 수 있습니다.",
       exampleValues: {
         metric: "mape",
         expectedValue: 7.5,
@@ -455,24 +476,24 @@ const metricConfigs = {
       labels: {
         expectedValue: "예상 평균 차이 (bias)",
         benchmarkValue: "최대 허용 차이 (Δ)",
-        alpha: "양측 alpha (LoA CI)",
+        alpha: "양측 alpha (95% LoA CI)",
         standardDeviation: "차이값 표준편차",
       },
       visibleFields: ["standardDeviation"],
       hiddenFields: ["nonInferiorityMargin"],
       help:
-        "Bland-Altman limits of agreement의 상한 95% 신뢰구간이 임상 허용 차이 Δ 안에 들어오도록 필요한 paired 케이스 수를 근사 계산합니다.",
+        "Lu et al. (2016)의 Bland-Altman sample size 방법을 따라, 고정된 95% LoA(mean ± 1.96 SD)의 신뢰구간이 임상 허용 차이 Δ 안에 들어오도록 필요한 paired 케이스 수를 non-central t 기반으로 계산합니다.",
       exampleValues: {
         metric: "bland_altman",
-        expectedValue: 0.2,
-        benchmarkValue: 1.2,
-        standardDeviation: 0.4,
+        expectedValue: 0.001167,
+        benchmarkValue: 0.004,
+        standardDeviation: 0.001129,
         alpha: 0.05,
         power: 0.8,
         dropout: 0.1,
       },
       exampleText:
-        "예시: 평균 차이 0.2, 차이값 SD 0.4, 최대 허용 차이 1.2에서 Bland-Altman agreement를 보이기 위한 샘플수 계산",
+        "예시: Lu et al. (2016) FPSA worked example 스타일로 평균 차이 0.001167, 차이값 SD 0.001129, 최대 허용 차이 0.004에서 Bland-Altman agreement 샘플수 계산",
     },
   },
 };
@@ -515,8 +536,8 @@ const referenceLibrary = {
     url: "https://pubmed.ncbi.nlm.nih.gov/2868172/",
   },
   luBlandAltman: {
-    label: "Lu et al., sample size for Bland-Altman method",
-    url: "https://doi.org/10.1515/ijb-2015-0039",
+    label: "Lu et al., Sample Size for Assessing Agreement by Bland-Altman Method",
+    url: "https://www.degruyterbrill.com/document/doi/10.1515/ijb-2015-0039/html",
   },
 };
 
@@ -580,8 +601,11 @@ const sharedAssumptions = {
   ],
   blandAltman: [
     "paired measurement 차이값이 평균과 표준편차로 요약 가능한 연속형 분포라고 가정합니다.",
-    "limits of agreement의 표준오차는 근사적으로 sqrt(3s²/n)로 계산합니다.",
+    "Lu et al. (2016) 방식처럼 fixed 95% LoA의 신뢰구간과 two-sided alpha, power를 함께 반영합니다.",
+    "계산은 non-central t 기반 power search를 사용하고, 기존 sqrt(3s²/n) 근사식은 비교용 legacy 참고값으로만 남깁니다.",
+    "현재 계산기는 95% LoA(mean ± 1.96×SD)를 고정 가정합니다.",
     "임상 허용 차이 Δ는 expected bias와 1.96×SD를 모두 넘는 값으로 사전에 정의되어야 합니다.",
+    "pilot 또는 pre-experiment에서 얻은 bias와 SD를 바탕으로 method comparison study를 planning하는 상황에 적합합니다.",
   ],
 };
 
@@ -646,6 +670,19 @@ const resultMetaMap = {
     noteKo: "집계형 지표이므로 파일럿 또는 bootstrap 기반 표준편차 입력이 중요합니다.",
     noteEn: "Because this is an aggregate metric, the standard deviation should preferably come from pilot data or bootstrap resampling.",
   }),
+  "classification:precision": createResultMeta({
+    metricLabel: "Precision (PPV)",
+    endpointLabelKo: "양성예측도",
+    endpointLabelEn: "positive predictive value",
+    family: "proportion",
+    references: sharedReferences.proportion,
+    assumptions: [
+      ...sharedAssumptions.proportion,
+      "총 샘플수는 예상 양성 판정 비율을 이용해 환산합니다.",
+    ],
+    noteKo: "예상 양성 판정 비율을 이용해 필요한 predicted positive 수를 총 케이스 수로 환산합니다.",
+    noteEn: "The required number of predicted positives is converted to total cases using the assumed predicted-positive rate.",
+  }),
   "classification:npv": createResultMeta({
     metricLabel: "NPV",
     endpointLabelKo: "음성예측도",
@@ -666,8 +703,8 @@ const resultMetaMap = {
     family: "mean-higher",
     references: sharedReferences.meanHigher,
     assumptions: sharedAssumptions.meanHigher,
-    noteKo: "케이스별 세그멘테이션 성능 평균을 이용한 continuous endpoint로 계산합니다.",
-    noteEn: "The calculation treats the case-level segmentation performance as a continuous endpoint.",
+    noteKo: "케이스별 pixel accuracy 평균을 이용한 continuous endpoint로 계산합니다.",
+    noteEn: "The calculation treats the case-level mean pixel accuracy as a continuous endpoint.",
   }),
   "segmentation:dsc": createResultMeta({
     metricLabel: "Dice Similarity Coefficient (DSC)",
@@ -769,8 +806,8 @@ const resultMetaMap = {
     family: "mean-lower",
     references: sharedReferences.meanLower,
     assumptions: sharedAssumptions.meanLower,
-    noteKo: "paired reference measurement와의 오차 분포를 continuous lower-better endpoint로 처리합니다.",
-    noteEn: "The paired measurement error distribution is treated as a continuous lower-is-better endpoint.",
+    noteKo: "paired reference measurement와의 오차 분포를 continuous lower-better endpoint로 처리하되, RMSE는 정규 근사 기반 planning으로 해석합니다.",
+    noteEn: "The paired measurement error distribution is treated as a continuous lower-is-better endpoint using a normal approximation for RMSE planning.",
   }),
   "measurement:mape": createResultMeta({
     metricLabel: "MAPE",
@@ -779,8 +816,8 @@ const resultMetaMap = {
     family: "mean-lower",
     references: sharedReferences.meanLower,
     assumptions: sharedAssumptions.meanLower,
-    noteKo: "percentage error 분포를 continuous lower-better endpoint로 처리합니다.",
-    noteEn: "The percentage error distribution is treated as a continuous lower-is-better endpoint.",
+    noteKo: "percentage error 분포를 continuous lower-better endpoint로 처리하지만, reference value가 0에 가까운 경우에는 불안정할 수 있습니다.",
+    noteEn: "The percentage error distribution is treated as a continuous lower-is-better endpoint, but MAPE can be unstable when the reference value is close to zero.",
   }),
   "measurement:r_squared": createResultMeta({
     metricLabel: "R-squared",
@@ -800,9 +837,9 @@ const resultMetaMap = {
     references: sharedReferences.blandAltman,
     assumptions: sharedAssumptions.blandAltman,
     noteKo:
-      "paired difference의 평균과 표준편차를 이용해 limits of agreement의 상한 신뢰구간이 허용 차이 안에 들어오도록 계획합니다.",
+      "paired difference의 평균과 표준편차를 이용해 95% limits of agreement 신뢰구간이 허용 차이 안에 들어오도록 Lu et al.의 non-central t power 방식으로 계획합니다.",
     noteEn:
-      "The planning targets the confidence interval around the upper limit of agreement so that it remains within the pre-specified acceptable difference.",
+      "The planning uses the Lu et al. non-central t power approach so that the confidence interval around the fixed 95% limits of agreement remains within the pre-specified acceptable difference.",
   }),
 };
 
@@ -816,14 +853,14 @@ const basicFormTooltips = {
   "two-proportion": {
     p1: "기존 방법이나 대조군에서 예상하는 비율입니다.",
     p2: "새 방법이나 시험군에서 예상하는 비율입니다.",
-    alpha: "우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값입니다. 보통 0.05를 씁니다.",
+    alpha: "양측 alpha입니다. 우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값이며, 보통 0.05를 씁니다.",
     power: "정말 차이가 있을 때 그 차이를 찾아낼 가능성입니다. 보통 80%나 90%를 사용합니다.",
     dropout: "중간 탈락이나 분석 제외를 미리 예상한 비율입니다.",
   },
   "two-mean": {
     sigma: "값이 사람마다 얼마나 들쭉날쭉한지 나타내는 값입니다. 보통 이전 연구나 파일럿 결과를 참고해 넣습니다.",
     delta: "두 그룹 사이에서 최소 어느 정도 차이는 보여야 의미 있다고 볼지 정하는 값입니다.",
-    alpha: "우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값입니다. 보통 0.05를 씁니다.",
+    alpha: "양측 alpha입니다. 우연한 차이를 진짜 차이로 잘못 판단할 가능성을 얼마나 낮게 둘지 정하는 값이며, 보통 0.05를 씁니다.",
     power: "정말 평균 차이가 있을 때 그 차이를 찾아낼 가능성입니다.",
     dropout: "중간 탈락이나 분석 제외를 미리 예상한 비율입니다.",
   },
@@ -838,19 +875,16 @@ const aiFieldTooltipBuilders = {
       : `이번 시험에서 AI의 ${metricLabel}가 어느 정도 나올 것으로 예상하는지 적는 값입니다.`,
   benchmarkValue: ({ meta, metricLabel }) =>
     meta?.family === "bland-altman"
-      ? "임상적으로 허용 가능한 최대 절대 차이 Δ입니다. expected bias와 LoA 상한보다 커야 합니다."
+      ? "임상적으로 허용 가능한 최대 절대 차이 Δ입니다. expected bias와 95% LoA 상한보다 커야 하며, 보통 파일럿 결과를 보고 임상팀과 함께 정합니다."
       : `${metricLabel}에서 비교 기준으로 삼을 값입니다. 기존 제품, 기존 모델, 목표 성능 등을 넣으면 됩니다.`,
   nonInferiorityMargin: ({ meta }) =>
     meta?.family === "mean-lower"
       ? "기준값보다 얼마나 더 나빠져도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다."
       : "기준값보다 얼마나 낮아도 괜찮다고 볼지 정하는 여유 범위입니다. 숫자가 작을수록 기준을 더 엄격하게 잡는 것입니다.",
-  alpha: ({ meta }) =>
+  power: ({ meta }) =>
     meta?.family === "bland-altman"
-      ? "Bland-Altman에서는 limits of agreement 신뢰구간에 대한 양측 alpha로 해석합니다. 보통 0.05를 많이 사용합니다."
-      : meta?.family === "auc"
-      ? "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. AUC에서는 보통 0.025를 많이 사용합니다."
-      : "판정을 너무 쉽게 하지 않도록 정하는 기준입니다. 보통 0.025나 0.05를 사용합니다.",
-  power: () => "기준을 만족했을 때 그것을 실제로 확인해낼 가능성입니다. 보통 80% 또는 90%를 많이 씁니다.",
+      ? "고정된 95% LoA 신뢰구간이 임상 허용 차이 안에 들어왔다는 결론을 실제로 얻어낼 확률입니다. 보통 80% 또는 90%를 많이 씁니다."
+      : "기준을 만족했을 때 그것을 실제로 확인해낼 가능성입니다. 보통 80% 또는 90%를 많이 씁니다.",
   positiveCaseRate: () =>
     "전체 데이터 중 실제로 이상이나 질환이 있는 케이스의 비율입니다.",
   predictedNegativeRate: () =>
@@ -873,6 +907,14 @@ const aiFieldTooltipBuilders = {
     "각 subgroup 안에서 최소 확보하고 싶은 analyzable case 수입니다. 0이면 subgroup floor를 적용하지 않습니다.",
   referenceReviewFailureRate: () =>
     "Reference standard가 missing, equivocal, adjudication failure, quality exclusion으로 빠질 것으로 예상되는 비율입니다.",
+  alpha: ({ meta }) =>
+    meta?.family === "bland-altman"
+      ? "Bland-Altman에서는 고정된 95% LoA(mean ± 1.96 SD) 신뢰구간에 대한 양측 alpha입니다. Lu et al. 방식에서 power와 함께 들어가며 보통 0.05를 많이 사용합니다."
+      : meta?.family === "auc"
+      ? "단측 alpha입니다. 판정을 너무 쉽게 하지 않도록 정하는 기준이며, AUC에서는 보통 0.025를 많이 사용합니다."
+      : "단측 alpha입니다. 판정을 너무 쉽게 하지 않도록 정하는 기준이며, 보통 0.025나 0.05를 사용합니다.",
+  predictedPositiveRate: () =>
+    "전체 데이터 중 AI가 양성이라고 판단할 것으로 예상되는 비율입니다. Precision/PPV 계산에서 total case 환산에 사용합니다.",
 };
 
 const basicDemoValues = {
@@ -4132,15 +4174,15 @@ function buildEnhancedRegulatoryTextSafe(context) {
     const powerText = formatPercentValue(inputs.power);
 
     const koParts = [
-      `본 ${categoryLabel} 성능평가 샘플수는 Bland-Altman limits of agreement 접근을 사용하여 paired difference의 평균 ${bias}와 표준편차 ${sd}를 가정하고, 최대 허용 차이 Δ ${agreementLimit} 안에서 upper LoA의 신뢰구간을 확보하도록 산출하였다.`,
-      `계산에는 양측 alpha ${alphaText}와 검정력 ${powerText}를 적용하였다.`,
+      `본 ${categoryLabel} 성능평가 샘플수는 Lu et al. (2016)의 Bland-Altman limits of agreement sample size 접근을 사용하여 paired difference의 평균 ${bias}와 표준편차 ${sd}를 가정하고, 최대 허용 차이 Δ ${agreementLimit} 안에서 고정된 95% LoA 신뢰구간을 확보하도록 산출하였다.`,
+      `계산에는 양측 alpha ${alphaText}와 검정력 ${powerText}를 적용하고, non-central t 기반 power search로 최소 n을 탐색하였다.`,
       `기본 계산 결과 ${counts.koRequired}이며, 예상 탈락률 ${dropoutText}를 반영한 목표 모집 수는 ${counts.koAdjusted}로 설정하였다.`,
       `${meta.noteKo}`,
     ];
 
     const enParts = [
-      `The sample size for the ${categoryLabel.toLowerCase()} performance evaluation was determined using a Bland-Altman limits-of-agreement approach, assuming an expected mean paired difference of ${bias}, a standard deviation of differences of ${sd}, and a maximum acceptable difference of ${agreementLimit}.`,
-      `A two-sided alpha of ${alphaText} and ${powerText} power were applied to keep the confidence interval around the upper limit of agreement within the acceptable difference.`,
+      `The sample size for the ${categoryLabel.toLowerCase()} performance evaluation was determined using the Lu et al. Bland-Altman limits-of-agreement sample-size approach, assuming an expected mean paired difference of ${bias}, a standard deviation of differences of ${sd}, and a maximum acceptable difference of ${agreementLimit}.`,
+      `A two-sided alpha of ${alphaText} and ${powerText} power were applied, and the minimum n was searched with a non-central t based power criterion for the fixed 95% limits of agreement.`,
       `The base calculation showed that ${counts.enRequired}, and the target enrollment was set at ${counts.enAdjusted} after allowing for an anticipated dropout rate of ${dropoutText}.`,
       `${meta.noteEn}`,
     ];
@@ -4314,12 +4356,12 @@ function buildEnhancedParameterRows(context) {
       {
         item: "Two-sided alpha",
         value: formatDisplayNumber(inputs.alpha),
-        note: "Confidence level applied to the LoA interval",
+        note: "Two-sided alpha for the confidence interval around the fixed 95% LoA",
       },
       {
         item: "Power",
         value: formatPercentValue(inputs.power),
-        note: "Target probability of demonstrating agreement",
+        note: "Target probability from the Lu et al. non-central t agreement criterion",
       },
       {
         item: "Dropout rate",
@@ -4336,6 +4378,14 @@ function buildEnhancedParameterRows(context) {
       });
     }
 
+    if (result.metrics?.expectedLowerLoA !== undefined) {
+      rows.push({
+        item: "Expected lower LoA",
+        value: formatDisplayNumber(result.metrics.expectedLowerLoA),
+        note: "Lower limit of agreement implied by the expected bias and SD",
+      });
+    }
+
     if (result.metrics?.criticalLoA !== undefined) {
       rows.push({
         item: "Critical |LoA|",
@@ -4349,6 +4399,54 @@ function buildEnhancedParameterRows(context) {
         item: "Agreement gap",
         value: formatDisplayNumber(result.metrics.agreementGap),
         note: "Remaining distance between the acceptable difference and the worst-case |LoA|",
+      });
+    }
+
+    if (result.metrics?.achievedPower !== undefined) {
+      rows.push({
+        item: "Achieved power",
+        value: formatPercentValue(result.metrics.achievedPower),
+        note: "Exact power at the recommended n from the non-central t search",
+      });
+    }
+
+    if (result.metrics?.upperSideBeta !== undefined) {
+      rows.push({
+        item: "Upper-side β",
+        value: formatDisplayNumber(result.metrics.upperSideBeta),
+        note: "Type II error for the upper LoA side of the agreement decision",
+      });
+    }
+
+    if (result.metrics?.lowerSideBeta !== undefined) {
+      rows.push({
+        item: "Lower-side β",
+        value: formatDisplayNumber(result.metrics.lowerSideBeta),
+        note: "Type II error for the lower LoA side of the agreement decision",
+      });
+    }
+
+    if (result.metrics?.legacyApproximateN !== undefined) {
+      rows.push({
+        item: "Legacy approximate n",
+        value: formatDisplayNumber(result.metrics.legacyApproximateN, 2),
+        note: "Older sqrt(3s²/n)-based approximation shown for comparison only",
+      });
+    }
+
+    if (result.metrics?.standardizedBiasRatio !== undefined) {
+      rows.push({
+        item: "|Bias| / SD",
+        value: formatDisplayNumber(result.metrics.standardizedBiasRatio),
+        note: "Standardized mean-difference ratio used in the Lu et al. framing",
+      });
+    }
+
+    if (result.metrics?.standardizedAgreementRatio !== undefined) {
+      rows.push({
+        item: "Δ / SD",
+        value: formatDisplayNumber(result.metrics.standardizedAgreementRatio),
+        note: "Standardized clinical agreement limit used in the Lu et al. framing",
       });
     }
 
@@ -4454,6 +4552,14 @@ function buildEnhancedParameterRows(context) {
     });
   }
 
+  if (inputs.predictedPositiveRate !== undefined) {
+    rows.push({
+      item: "Predicted-positive rate",
+      value: formatPercentValue(inputs.predictedPositiveRate),
+      note: "Planning assumption used when the endpoint depends on predicted positives",
+    });
+  }
+
   if (inputs.predictedNegativeRate !== undefined) {
     rows.push({
       item: "Predicted-negative rate",
@@ -4541,6 +4647,7 @@ function renderSummaryMetrics(metrics) {
   const orderedKeys = [
     "requiredCases",
     "requiredPositiveCases",
+    "requiredPositivePredictions",
     "requiredNegativeCases",
     "requiredNegativePredictions",
     "requiredLesions",
@@ -4548,15 +4655,23 @@ function renderSummaryMetrics(metrics) {
     "adjustedCases",
     "adjustedTotalCases",
     "expectedUpperLoA",
+    "expectedLowerLoA",
     "criticalLoA",
     "maxAllowedDifference",
     "agreementGap",
+    "achievedPower",
+    "upperSideBeta",
+    "lowerSideBeta",
+    "legacyApproximateN",
+    "standardizedBiasRatio",
+    "standardizedAgreementRatio",
     "nonInferiorityThreshold",
     "rawSample",
   ];
   const labels = {
     requiredCases: "최소 케이스 / Required cases",
     requiredPositiveCases: "양성 케이스 / Positive cases",
+    requiredPositivePredictions: "양성 판정 수 / Predicted positives",
     requiredNegativeCases: "음성 케이스 / Negative cases",
     requiredNegativePredictions: "음성 판정 수 / Predicted negatives",
     requiredLesions: "병변 수 / Lesions",
@@ -4564,9 +4679,16 @@ function renderSummaryMetrics(metrics) {
     adjustedCases: "목표 모집 수 / Target enrollment",
     adjustedTotalCases: "목표 모집 수 / Target enrollment",
     expectedUpperLoA: "예상 upper LoA / Expected upper LoA",
+    expectedLowerLoA: "예상 lower LoA / Expected lower LoA",
     criticalLoA: "worst-case |LoA| / Critical |LoA|",
     maxAllowedDifference: "허용 차이 Δ / Allowed difference",
     agreementGap: "허용 여유 / Agreement gap",
+    achievedPower: "달성 검정력 / Achieved power",
+    upperSideBeta: "상한 β / Upper-side β",
+    lowerSideBeta: "하한 β / Lower-side β",
+    legacyApproximateN: "기존 근사 n / Legacy approximate n",
+    standardizedBiasRatio: "|Bias|/SD / Standardized bias",
+    standardizedAgreementRatio: "Δ/SD / Standardized limit",
     nonInferiorityThreshold: "비열등성 한계값 / NI threshold",
     rawSample: "원계산 n / Raw n",
   };
@@ -4703,12 +4825,12 @@ function buildMethodPresentation(context) {
       nameKo: "Bland-Altman limits of agreement 기반 일치도 설계",
       nameEn: "Bland-Altman limits-of-agreement design",
       summary:
-        "paired difference의 평균과 표준편차를 이용해 upper limit of agreement의 신뢰구간이 사전 정의한 허용 차이 Δ 안에 들어오도록 필요한 샘플 수를 근사 계산합니다.",
+        "paired difference의 평균과 표준편차를 이용해 fixed 95% LoA 신뢰구간이 사전 정의한 허용 차이 Δ 안에 들어오도록 Lu et al.의 non-central t power search 방식으로 필요한 샘플 수를 계산합니다.",
       hypothesis: "Agreement goal: Upper LoA CI < Δ and Lower LoA CI > -Δ",
       formula:
-        "Upper LoA = |d̄| + 1.96s, SE(LoA) ≈ √(3s² / n), n ≈ 3((z<sub>1-α/2</sub> + z<sub>1-β</sub>) × s / (Δ - |d̄| - 1.96s))²",
+        "SE(LoA) = s√(1/n + z<sub>1-γ/2</sub><sup>2</sup> / 2(n-1)), β = β<sub>1</sub> + β<sub>2</sub>, choose the smallest n with 1 - β ≥ target power using non-central t",
       figureCaption:
-        "Expected upper and lower limits of agreement should remain inside the clinically acceptable difference band as the confidence interval narrows with increasing sample size.",
+        "Expected upper and lower limits of agreement should remain inside the clinically acceptable difference band while the exact non-central t power for the fixed 95% LoA reaches the target.",
     };
   }
 
@@ -4821,6 +4943,14 @@ function buildParameterRows(context) {
       item: "양성 케이스 비율 / Positive-case rate",
       value: formatPercentValue(inputs.positiveCaseRate),
       note: "민감도 또는 AUC 계산의 case mix 가정",
+    });
+  }
+
+  if (inputs.predictedPositiveRate !== undefined) {
+    rows.push({
+      item: "양성 판정 비율 / Predicted-positive rate",
+      value: formatPercentValue(inputs.predictedPositiveRate),
+      note: "Precision/PPV 계산에서 predicted positive 비율 가정",
     });
   }
 
@@ -5028,6 +5158,13 @@ function buildFigureBadges(context) {
     });
   }
 
+  if (inputs.predictedPositiveRate !== undefined) {
+    badges.push({
+      label: "Predicted-positive rate",
+      value: formatPercentValue(inputs.predictedPositiveRate),
+    });
+  }
+
   if (inputs.predictedNegativeRate !== undefined) {
     badges.push({
       label: "Predicted-negative rate",
@@ -5081,6 +5218,13 @@ function buildFigureBadges(context) {
     badges.push({
       label: "Allowed diff",
       value: formatDisplayNumber(result.metrics.maxAllowedDifference),
+    });
+  }
+
+  if (meta.family === "bland-altman" && result.metrics?.achievedPower !== undefined) {
+    badges.push({
+      label: "Achieved power",
+      value: formatPercentValue(result.metrics.achievedPower),
     });
   }
 
@@ -5178,11 +5322,28 @@ function clampNumber(value, min, max) {
 
 function formatMetricValue(key, value) {
   if (
-    ["rawSample", "nonInferiorityThreshold", "expectedUpperLoA", "expectedLowerLoA", "criticalLoA", "maxAllowedDifference", "agreementGap"].includes(
+    [
+      "rawSample",
+      "nonInferiorityThreshold",
+      "expectedUpperLoA",
+      "expectedLowerLoA",
+      "criticalLoA",
+      "maxAllowedDifference",
+      "agreementGap",
+      "upperSideBeta",
+      "lowerSideBeta",
+      "legacyApproximateN",
+      "standardizedBiasRatio",
+      "standardizedAgreementRatio",
+    ].includes(
       key
     )
   ) {
-    return formatDisplayNumber(value, key === "rawSample" ? 4 : 3);
+    return formatDisplayNumber(value, key === "rawSample" || key === "legacyApproximateN" ? 4 : 3);
+  }
+
+  if (key === "achievedPower") {
+    return formatPercentValue(value);
   }
 
   return formatCount(value);

@@ -132,7 +132,7 @@
       <div class="hero-card">
         <p class="card-label">현재 제공 범주</p>
         <ul class="hero-list">
-          <li>Classification: Accuracy, Sensitivity, Specificity, AUC (95% CI), F1-score, NPV</li>
+          <li>Classification: Accuracy, Sensitivity, Specificity, AUC (95% CI), F1-score, Precision (PPV), NPV</li>
           <li>Segmentation: Accuracy, DSC, IoU</li>
           <li>Detection: Accuracy, IoU, Lesion-level Sensitivity, FP per Image, mAP</li>
           <li>Measurement: Accuracy, MAE, RMSE, MAPE, R-squared, Bland-Altman</li>
@@ -203,6 +203,7 @@
                   <option value="specificity">Specificity</option>
                   <option value="auc">AUC (95% CI 포함)</option>
                   <option value="f1">F1-score</option>
+                  <option value="precision">Precision (PPV)</option>
                   <option value="npv">NPV</option>
                 </select>
               </label>
@@ -219,7 +220,7 @@
                 <input name="nonInferiorityMargin" type="number" min="0.001" max="0.5" step="0.01" value="0.05">
               </label>
               <label>
-                one-sided alpha
+                단측 alpha
                 <select name="alpha">
                   <option value="0.05">0.05</option>
                   <option value="0.025" selected>0.025</option>
@@ -237,6 +238,10 @@
               <label data-optional-field="positiveCaseRate">
                 <span data-label-key="positiveCaseRate">평가셋 내 양성 케이스 비율</span>
                 <input name="positiveCaseRate" type="number" min="0.01" max="0.99" step="0.01" value="0.3">
+              </label>
+              <label data-optional-field="predictedPositiveRate">
+                <span data-label-key="predictedPositiveRate">예상 양성 판정 비율</span>
+                <input name="predictedPositiveRate" type="number" min="0.01" max="0.99" step="0.01" value="0.28">
               </label>
               <label data-optional-field="predictedNegativeRate">
                 <span data-label-key="predictedNegativeRate">예상 음성 판정 비율</span>
@@ -332,7 +337,7 @@
                 <input name="standardDeviation" type="number" min="0.001" step="0.01" value="0.08">
               </label>
               <label>
-                one-sided alpha
+                단측 alpha
                 <select name="alpha">
                   <option value="0.05">0.05</option>
                   <option value="0.025" selected>0.025</option>
@@ -429,7 +434,7 @@
                 <input name="nonInferiorityMargin" type="number" min="0.001" step="0.01" value="0.05">
               </label>
               <label>
-                one-sided alpha
+                단측 alpha
                 <select name="alpha">
                   <option value="0.05">0.05</option>
                   <option value="0.025" selected>0.025</option>
@@ -539,7 +544,7 @@
                 <input name="nonInferiorityMargin" type="number" min="0.001" step="0.01" value="0.05">
               </label>
               <label>
-                <span data-label-key="alpha">one-sided alpha</span>
+                <span data-label-key="alpha">단측 alpha</span>
                 <select name="alpha">
                   <option value="0.05">0.05</option>
                   <option value="0.025" selected>0.025</option>
@@ -607,7 +612,7 @@
                 <li><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/non-inferiority-clinical-trials" target="_blank" rel="noopener noreferrer">FDA: Non-Inferiority Clinical Trials guidance</a></li>
                 <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5652499/" target="_blank" rel="noopener noreferrer">Benchmark-based one-sample non-inferiority for medical devices</a></li>
                 <li><a href="https://pubmed.ncbi.nlm.nih.gov/2868172/" target="_blank" rel="noopener noreferrer">Bland and Altman, agreement between two methods of clinical measurement</a></li>
-                <li><a href="https://doi.org/10.1515/ijb-2015-0039" target="_blank" rel="noopener noreferrer">Lu et al., sample size for Bland-Altman method</a></li>
+                <li><a href="https://www.degruyterbrill.com/document/doi/10.1515/ijb-2015-0039/html" target="_blank" rel="noopener noreferrer">Lu et al., sample size for Bland-Altman method</a></li>
               </ul>
             </section>
           </section>
@@ -619,11 +624,12 @@
           <p class="section-kicker">Interpretation</p>
           <h2>입력값 가이드</h2>
           <ul class="info-list">
-            <li>Accuracy, Sensitivity, Specificity, NPV는 proportion 기반 비열등성 계산으로 처리합니다.</li>
-              <li>AUC는 Hanley-McNeil 분산 근사를 사용하며 one-sided alpha 0.025 기준으로 양측 95% 신뢰구간 해석을 함께 맞춥니다.</li>
+            <li>Accuracy, Sensitivity, Specificity, Precision(PPV), NPV는 proportion 기반 비열등성 계산으로 처리합니다.</li>
+            <li>AUC는 Hanley-McNeil 분산 근사를 사용하며 단측 alpha 0.025 기준으로 양측 95% 신뢰구간 해석과 대응시킵니다.</li>
+            <li>Segmentation Accuracy는 케이스별 mean pixel accuracy를 연속형 endpoint로 두는 가정이어서 표준편차 입력이 필요합니다.</li>
             <li>F1-score, mAP, R-squared는 bootstrap 또는 파일럿 데이터 기반 SD를 이용한 mean 근사식으로 처리합니다.</li>
-            <li>FP per Image, MAE, RMSE, MAPE는 lower-better 지표로 계산합니다.</li>
-            <li>Bland-Altman은 paired difference의 평균과 SD를 이용해 limits of agreement의 신뢰구간이 허용 차이 안에 들어오도록 계획합니다.</li>
+            <li>FP per Image, MAE, RMSE, MAPE는 lower-better 지표로 계산하며, RMSE는 정규 근사 기반 planning이고 MAPE는 reference value가 0에 가까우면 불안정할 수 있습니다.</li>
+            <li>Bland-Altman은 고정된 95% LoA(mean ± 1.96 SD)를 전제로 하고, Lu et al. (2016)의 non-central t 기반 power method로 paired sample size를 계획합니다.</li>
             <li>Measurement Accuracy는 허용오차 내 비율을 accuracy로 정의한 경우를 가정합니다.</li>
           </ul>
         </section>
@@ -648,8 +654,8 @@
             <code>Hanley-McNeil variance approximation with fixed positive/negative case ratio</code>
           </div>
           <div class="formula-block">
-            <p>Bland-Altman</p>
-            <code>Upper LoA = |d̄| + 1.96s, SE(LoA) ≈ √(3s² / n), n ≈ 3((z1-α/2 + z1-β) × s / (Δ - |d̄| - 1.96s))²</code>
+            <p>Bland-Altman (fixed 95% LoA)</p>
+            <code>SE(LoA) = s√(1/n + z²1-γ/2 / 2(n-1)), β = β1 + β2, choose the smallest n with 1 - β ≥ target power using non-central t</code>
           </div>
         </section>
 
@@ -658,11 +664,13 @@
           <h2>주의사항</h2>
           <p>
             계산식은 규제기관이 직접 고정한 공식이 아니라, benchmark와 비열등성 마진을 두고 one-sample non-inferiority 문제로
-            실무적으로 구현한 표준 근사식입니다.
+            실무적으로 구현한 표준 근사식입니다. 기본 공식은 독립 케이스를 가정하므로 multi-site 또는 multi-reader 연구에서는 design effect를 반영해
+            보수적으로 계획해야 합니다.
           </p>
           <p>
             AUC, F1-score, mAP, R-squared처럼 집계형 metric은 분산 추정 방법에 따라 샘플수가 달라질 수 있습니다.
-            최종 제출 전에는 파일럿 데이터 기반 bootstrap 또는 통계분석계획서(SAP) 수준의 검토를 권장합니다.
+            최종 제출 전에는 파일럿 데이터 기반 bootstrap 또는 통계분석계획서(SAP) 수준의 검토를 권장합니다. RMSE는 정규 근사, Bland-Altman은 Lu et al.
+            non-central t 기반 exact power search를 사용하되 95% LoA 고정 가정을 두고, MAPE는 reference value가 0에 가까운 환경에서는 다른 오차 지표가 더 적합할 수 있습니다.
           </p>
         </section>
       </aside>

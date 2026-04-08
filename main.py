@@ -2,6 +2,7 @@ import json
 import math
 import mimetypes
 import os
+from functools import lru_cache
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -88,6 +89,102 @@ def equivalent_two_sided_confidence(alpha):
     return 1 - (2 * alpha)
 
 
+def simpson_integral(function, start, end, steps):
+    if steps % 2 == 1:
+        steps += 1
+
+    width = (end - start) / steps
+    total = function(start) + function(end)
+
+    for index in range(1, steps):
+        point = start + (index * width)
+        total += function(point) * (4 if index % 2 == 1 else 2)
+
+    return total * width / 3
+
+
+def chi_square_pdf(value, degrees_of_freedom):
+    if value <= 0:
+        return 0.0
+
+    half_df = degrees_of_freedom / 2
+    return math.exp(
+        ((half_df - 1) * math.log(value))
+        - (value / 2)
+        - (half_df * math.log(2))
+        - math.lgamma(half_df)
+    )
+
+
+@lru_cache(maxsize=256)
+def student_t_quantile_approx(probability, degrees_of_freedom):
+    z_value = NormalDist().inv_cdf(probability)
+    z_squared = z_value**2
+    z_cubed = z_squared * z_value
+    z_fifth = z_cubed * z_squared
+    z_seventh = z_fifth * z_squared
+
+    first = (z_cubed + z_value) / (4 * degrees_of_freedom)
+    second = (5 * z_fifth + 16 * z_cubed + 3 * z_value) / (96 * (degrees_of_freedom**2))
+    third = (3 * z_seventh + 19 * z_fifth + 17 * z_cubed - 15 * z_value) / (384 * (degrees_of_freedom**3))
+    return z_value + first + second + third
+
+
+def noncentral_t_cdf(value, degrees_of_freedom, noncentrality):
+    normal_distribution = NormalDist()
+    upper_bound = max(degrees_of_freedom + (16 * math.sqrt(2 * degrees_of_freedom)), 40.0)
+    integration_steps = 1600 if degrees_of_freedom < 40 else 1200
+
+    def integrand(chi_square_value):
+        if chi_square_value <= 0:
+            return 0.0
+        transformed = value * math.sqrt(chi_square_value / degrees_of_freedom) - noncentrality
+        return normal_distribution.cdf(transformed) * chi_square_pdf(chi_square_value, degrees_of_freedom)
+
+    cdf_value = simpson_integral(integrand, 1e-8, upper_bound, integration_steps)
+    return min(1.0, max(0.0, cdf_value))
+
+
+def bland_altman_power_components(sample_size, expected_mean_difference, standard_deviation, max_allowed_difference, alpha, loa_gamma=0.05):
+    loa_multiplier = NormalDist().inv_cdf(1 - (loa_gamma / 2))
+    expected_upper_loa = expected_mean_difference + (loa_multiplier * standard_deviation)
+    expected_lower_loa = expected_mean_difference - (loa_multiplier * standard_deviation)
+    critical_loa = max(abs(expected_upper_loa), abs(expected_lower_loa))
+    agreement_gap = max_allowed_difference - critical_loa
+    if agreement_gap <= 0:
+        raise ValidationError("최대 허용 차이는 |평균 차이| + 1.96 x SD보다 커야 합니다. 이 계산은 95% LoA를 가정합니다.")
+
+    degrees_of_freedom = sample_size - 1
+    loa_standard_error = standard_deviation * math.sqrt(
+        (1 / sample_size) + ((loa_multiplier**2) / (2 * degrees_of_freedom))
+    )
+    t_critical = student_t_quantile_approx(1 - (alpha / 2), degrees_of_freedom)
+    upper_noncentrality = (max_allowed_difference - expected_mean_difference - (loa_multiplier * standard_deviation)) / loa_standard_error
+    lower_noncentrality = (max_allowed_difference + expected_mean_difference - (loa_multiplier * standard_deviation)) / loa_standard_error
+
+    upper_side_beta = noncentral_t_cdf(t_critical, degrees_of_freedom, upper_noncentrality)
+    lower_side_beta = noncentral_t_cdf(t_critical, degrees_of_freedom, lower_noncentrality)
+    achieved_power = max(0.0, 1 - upper_side_beta - lower_side_beta)
+
+    return {
+        "loa_multiplier": loa_multiplier,
+        "expected_upper_loa": expected_upper_loa,
+        "expected_lower_loa": expected_lower_loa,
+        "critical_loa": critical_loa,
+        "agreement_gap": agreement_gap,
+        "degrees_of_freedom": degrees_of_freedom,
+        "loa_standard_error": loa_standard_error,
+        "t_critical": t_critical,
+        "upper_noncentrality": upper_noncentrality,
+        "lower_noncentrality": lower_noncentrality,
+        "upper_side_beta": upper_side_beta,
+        "lower_side_beta": lower_side_beta,
+        "achieved_power": achieved_power,
+        "standardized_bias_ratio": abs(expected_mean_difference) / standard_deviation,
+        "standardized_agreement_ratio": max_allowed_difference / standard_deviation,
+    }
+
+
 def solve_one_sample_noninferiority_proportion(expected_rate, benchmark_rate, ni_margin, alpha, power):
     assert_between_exclusive(expected_rate, 0, 1, "예상 성능은 0과 1 사이여야 합니다.")
     assert_between_exclusive(benchmark_rate, 0, 1, "비교 기준 성능은 0과 1 사이여야 합니다.")
@@ -155,27 +252,58 @@ def solve_bland_altman_agreement(expected_mean_difference, standard_deviation, m
     assert_between_exclusive(alpha, 0, 0.5, "Bland-Altman alpha는 0과 0.5 사이여야 합니다.")
     assert_between_exclusive(power, 0, 1, "검정력은 0과 1 사이여야 합니다.")
 
-    expected_upper_loa = expected_mean_difference + 1.96 * standard_deviation
-    expected_lower_loa = expected_mean_difference - 1.96 * standard_deviation
-    critical_loa = max(abs(expected_upper_loa), abs(expected_lower_loa))
-    agreement_gap = max_allowed_difference - critical_loa
-    if agreement_gap <= 0:
-        raise ValidationError("최대 허용 차이는 |평균 차이| + 1.96 × SD보다 커야 합니다.")
+    baseline = bland_altman_power_components(
+        sample_size=4,
+        expected_mean_difference=expected_mean_difference,
+        standard_deviation=standard_deviation,
+        max_allowed_difference=max_allowed_difference,
+        alpha=alpha,
+    )
 
-    z_alpha = NormalDist().inv_cdf(1 - alpha / 2)
-    z_beta = NormalDist().inv_cdf(power)
-    raw_sample = 3 * (((z_alpha + z_beta) * standard_deviation) / agreement_gap) ** 2
+    z_alpha = NormalDist().inv_cdf(1 - (alpha / 2))
+    z_beta_legacy = NormalDist().inv_cdf(power)
+    legacy_raw_sample = 3 * (((z_alpha + z_beta_legacy) * standard_deviation) / baseline["agreement_gap"]) ** 2
 
-    return {
-        "raw_sample": raw_sample,
-        "required_sample": math.ceil(raw_sample),
-        "z_alpha": z_alpha,
-        "z_beta": z_beta,
-        "expected_upper_loa": expected_upper_loa,
-        "expected_lower_loa": expected_lower_loa,
-        "critical_loa": critical_loa,
-        "agreement_gap": agreement_gap,
-    }
+    search_high = max(4, math.ceil(legacy_raw_sample))
+    current = bland_altman_power_components(
+        sample_size=search_high,
+        expected_mean_difference=expected_mean_difference,
+        standard_deviation=standard_deviation,
+        max_allowed_difference=max_allowed_difference,
+        alpha=alpha,
+    )
+
+    while current["achieved_power"] < power:
+        search_high *= 2
+        if search_high > 200000:
+            raise ValidationError("주어진 Bland-Altman 입력값으로는 합리적인 표본수 범위 안에서 목표 검정력에 도달하지 못했습니다.")
+        current = bland_altman_power_components(
+            sample_size=search_high,
+            expected_mean_difference=expected_mean_difference,
+            standard_deviation=standard_deviation,
+            max_allowed_difference=max_allowed_difference,
+            alpha=alpha,
+        )
+
+    search_low = 4
+    while search_low + 1 < search_high:
+        candidate = (search_low + search_high) // 2
+        candidate_result = bland_altman_power_components(
+            sample_size=candidate,
+            expected_mean_difference=expected_mean_difference,
+            standard_deviation=standard_deviation,
+            max_allowed_difference=max_allowed_difference,
+            alpha=alpha,
+        )
+        if candidate_result["achieved_power"] >= power:
+            search_high = candidate
+            current = candidate_result
+        else:
+            search_low = candidate
+
+    current["legacy_raw_sample"] = legacy_raw_sample
+    current["required_sample"] = search_high
+    return current
 
 
 def auc_variance_constant(auc_value, positive_case_rate):
@@ -234,7 +362,7 @@ def calculate_single_proportion(inputs):
     dropout = parse_float(inputs.get("dropout"), "예상 탈락률")
 
     assert_between_exclusive(p, 0, 1, "예상 비율은 0과 1 사이여야 합니다.")
-    assert_between_exclusive(margin, 0, 1, "허용 오차는 0보다 커야 합니다.")
+    assert_between_exclusive(margin, 0, 1, "허용 오차는 0과 1 사이여야 합니다.")
     assert_between_exclusive(confidence, 0, 1, "신뢰수준은 0과 1 사이여야 합니다.")
     assert_between_inclusive_left(dropout, 0, 0.99, "예상 탈락률은 0 이상 0.99 미만이어야 합니다.")
 
@@ -355,8 +483,8 @@ def calculate_two_mean(inputs):
 
 
 def calculate_ai_classification_precision(inputs):
-    expected_precision = parse_float(inputs.get("expectedPrecision"), "예상 precision")
-    benchmark_precision = parse_float(inputs.get("benchmarkPrecision"), "비교 기준 precision")
+    expected_precision = parse_float(inputs.get("expectedPrecision", inputs.get("expectedValue")), "예상 precision")
+    benchmark_precision = parse_float(inputs.get("benchmarkPrecision", inputs.get("benchmarkValue")), "비교 기준 precision")
     ni_margin = parse_float(inputs.get("nonInferiorityMargin"), "비열등성 마진")
     alpha = parse_float(inputs.get("alpha"), "one-sided alpha")
     power = parse_float(inputs.get("power"), "검정력")
@@ -466,7 +594,7 @@ def calculate_ai_segmentation_overlap(inputs):
     }
 
 
-def calculate_ai_detection(inputs):
+def _legacy_calculate_ai_detection(inputs):
     expected_sensitivity = parse_float(inputs.get("expectedSensitivity"), "예상 lesion-level sensitivity")
     benchmark_sensitivity = parse_float(inputs.get("benchmarkSensitivity"), "비교 기준 lesion-level sensitivity")
     ni_margin = parse_float(inputs.get("nonInferiorityMargin"), "비열등성 마진")
@@ -527,7 +655,7 @@ def calculate_ai_detection(inputs):
     }
 
 
-def calculate_ai_measurement(inputs):
+def _legacy_calculate_ai_measurement(inputs):
     expected_mae = parse_float(inputs.get("expectedMae"), "예상 MAE")
     benchmark_mae = parse_float(inputs.get("benchmarkMae"), "비교 기준 MAE")
     ni_margin = parse_float(inputs.get("nonInferiorityMargin"), "비열등성 마진")
@@ -716,6 +844,9 @@ def calculate_ai_classification(inputs):
             },
         }
 
+    if metric == "precision":
+        return calculate_ai_classification_precision(inputs)
+
     if metric == "npv":
         expected_value = parse_float(inputs.get("expectedValue"), "예상 NPV")
         benchmark_value = parse_float(inputs.get("benchmarkValue"), "비교 기준 NPV")
@@ -770,15 +901,18 @@ def calculate_ai_segmentation(inputs):
     adjusted_cases = adjust_for_dropout(required_cases, dropout)
     equivalent_ci = equivalent_two_sided_confidence(alpha)
     metric_name = metric_names[metric]
+    details = [
+        f"{metric_name}를 one-sample non-inferiority mean 근사식으로 계산했습니다.",
+        f"적용값: 예상 AI {metric_name} = {expected_value:.3f}, benchmark = {benchmark_value:.3f}, 비열등성 마진 = {ni_margin:.3f}, SD = {standard_deviation:.3f}, one-sided alpha = {alpha:.3f}, power = {power:.0%}",
+        f"비열등성 한계값 = {result['threshold_mean']:.3f}, effect gap = {result['effect_gap']:.3f}, 등가 양측 CI 수준 = {equivalent_ci:.0%}",
+        f"원 계산값 = {result['raw_sample']:.2f}",
+    ]
+    if metric == "accuracy":
+        details.append("Segmentation Accuracy는 케이스별 pixel accuracy 평균을 연속형 endpoint로 두는 가정이므로 표준편차 입력이 필요합니다.")
 
     return {
         "headline": f"{metric_name} 비열등성 판단에 필요한 최소 평가 케이스 수는 {format_number(required_cases)}건이며, 탈락률 반영 모집 목표수는 {format_number(adjusted_cases)}건입니다.",
-        "details": [
-            f"{metric_name}를 one-sample non-inferiority mean 근사식으로 계산했습니다.",
-            f"적용값: 예상 AI {metric_name} = {expected_value:.3f}, benchmark = {benchmark_value:.3f}, 비열등성 마진 = {ni_margin:.3f}, SD = {standard_deviation:.3f}, one-sided alpha = {alpha:.3f}, power = {power:.0%}",
-            f"비열등성 한계값 = {result['threshold_mean']:.3f}, effect gap = {result['effect_gap']:.3f}, 동등한 양측 CI 수준 = {equivalent_ci:.0%}",
-            f"원계산값 = {result['raw_sample']:.2f}",
-        ],
+        "details": details,
         "metrics": {
             "requiredCases": required_cases,
             "adjustedCases": adjusted_cases,
@@ -970,14 +1104,19 @@ def calculate_ai_measurement(inputs):
         required_cases = result["required_sample"]
         adjusted_cases = adjust_for_dropout(required_cases, dropout)
         metric_label = metric_labels[metric]
+        details = [
+            f"{metric_label}는 lower-better 지표로 one-sample non-inferiority mean 근사식을 적용했습니다.",
+            f"적용값: 예상 AI {metric_label} = {expected_value:.3f}, benchmark = {benchmark_value:.3f}, 비열등성 마진 = {ni_margin:.3f}, SD = {standard_deviation:.3f}, one-sided alpha = {alpha:.3f}, power = {power:.0%}",
+            f"비열등성 한계값 = {result['threshold_mean']:.3f}, effect gap = {result['effect_gap']:.3f}, 동등한 양측 CI 수준 = {equivalent_ci:.0%}",
+            f"원계산값 = {result['raw_sample']:.2f}",
+        ]
+        if metric == "rmse":
+            details.append("RMSE는 MSE의 제곱근이므로 정확한 소표본 공식은 chi-squared 기반입니다. 이 계산기는 충분한 표본에서의 정규 근사를 사용합니다.")
+        if metric == "mape":
+            details.append("MAPE는 reference value가 0 또는 0에 가까운 경우 과도하게 커질 수 있으므로, 그런 특성이 예상되면 다른 오차 지표를 우선 검토해야 합니다.")
         return {
             "headline": f"{metric_label} 비열등성 판단에 필요한 최소 paired 평가 케이스 수는 {format_number(required_cases)}건이며, 탈락률 반영 모집 목표수는 {format_number(adjusted_cases)}건입니다.",
-            "details": [
-                f"{metric_label}는 lower-better 지표로 one-sample non-inferiority mean 근사식을 적용했습니다.",
-                f"적용값: 예상 AI {metric_label} = {expected_value:.3f}, benchmark = {benchmark_value:.3f}, 비열등성 마진 = {ni_margin:.3f}, SD = {standard_deviation:.3f}, one-sided alpha = {alpha:.3f}, power = {power:.0%}",
-                f"비열등성 한계값 = {result['threshold_mean']:.3f}, effect gap = {result['effect_gap']:.3f}, 동등한 양측 CI 수준 = {equivalent_ci:.0%}",
-                f"원계산값 = {result['raw_sample']:.2f}",
-            ],
+            "details": details,
             "metrics": {
                 "requiredCases": required_cases,
                 "adjustedCases": adjusted_cases,
@@ -1030,7 +1169,7 @@ def calculate_ai_measurement(inputs):
                 f"탈락률 반영 모집 목표수는 {format_number(adjusted_cases)}건입니다."
             ),
             "details": [
-                "Bland-Altman에서는 paired difference의 평균과 표준편차를 사용해 upper limit of agreement의 신뢰구간이 허용 차이 안에 들어오도록 계획했습니다.",
+                "Lu et al. (2016)의 Bland-Altman sample size 방법을 따라, 95% LoA의 신뢰구간이 임상 허용 차이 안에 들어올 확률을 non-central t 기반으로 계산했습니다.",
                 (
                     f"적용값: 예상 평균 차이 = {expected_mean_difference:.3f}, 차이값 SD = {standard_deviation:.3f}, "
                     f"최대 허용 차이 Δ = {max_allowed_difference:.3f}, two-sided alpha = {alpha:.3f}, power = {power:.0%}"
@@ -1038,21 +1177,32 @@ def calculate_ai_measurement(inputs):
                 (
                     f"예상 upper LoA = {result['expected_upper_loa']:.3f}, lower LoA = {result['expected_lower_loa']:.3f}, "
                     f"worst-case |LoA| = {result['critical_loa']:.3f}, agreement gap = {result['agreement_gap']:.3f}, "
-                    f"LoA 신뢰수준 = {confidence_level:.0%}, zα/2 = {result['z_alpha']:.3f}, zβ = {result['z_beta']:.3f}"
+                    f"LoA 신뢰수준 = {confidence_level:.0%}, tα/2 = {result['t_critical']:.3f}, LoA SE = {result['loa_standard_error']:.4f}"
                 ),
-                f"원계산값 = {result['raw_sample']:.2f}",
-                "이 계산은 Bland-Altman LoA 표준오차를 sqrt(3s²/n)로 두는 근사식 기반 planning 값입니다.",
+                (
+                    f"upper-side β = {result['upper_side_beta']:.3f}, lower-side β = {result['lower_side_beta']:.3f}, "
+                    f"exact achieved power = {result['achieved_power']:.1%}, standardized |bias|/SD = {result['standardized_bias_ratio']:.3f}, "
+                    f"Δ/SD = {result['standardized_agreement_ratio']:.3f}"
+                ),
+                f"기존 근사식(Bland & Altman 1986) 기준 raw n ≈ {result['legacy_raw_sample']:.2f}였고, 최종 권고 n은 exact power search로 다시 산출했습니다.",
+                "현재 계산은 95% LoA(mean ± 1.96 x SD)를 고정 가정합니다. LoA 수준을 99% 등으로 바꾸면 공식도 달라집니다.",
+                "논문 예시처럼 pilot에서 얻은 bias와 SD를 넣어 method comparison study의 paired sample size를 planning하는 용도에 맞춰 구성했습니다.",
             ],
             "metrics": {
                 "requiredCases": required_cases,
                 "adjustedCases": adjusted_cases,
-                "rawSample": round(result["raw_sample"], 4),
                 "expectedBias": round(expected_mean_difference, 4),
                 "expectedUpperLoA": round(result["expected_upper_loa"], 4),
                 "expectedLowerLoA": round(result["expected_lower_loa"], 4),
                 "criticalLoA": round(result["critical_loa"], 4),
                 "maxAllowedDifference": round(max_allowed_difference, 4),
                 "agreementGap": round(result["agreement_gap"], 4),
+                "achievedPower": round(result["achieved_power"], 4),
+                "upperSideBeta": round(result["upper_side_beta"], 4),
+                "lowerSideBeta": round(result["lower_side_beta"], 4),
+                "legacyApproximateN": round(result["legacy_raw_sample"], 4),
+                "standardizedBiasRatio": round(result["standardized_bias_ratio"], 4),
+                "standardizedAgreementRatio": round(result["standardized_agreement_ratio"], 4),
             },
         }
 
