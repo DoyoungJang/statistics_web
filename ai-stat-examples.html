@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 통계 계산 예시</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page page-ai-stat-examples">
+  <div class="page-shell">
+    <nav class="page-nav" aria-label="페이지 이동">
+      <a class="page-nav-link" href="/index.html">기본 통계 계산</a>
+      <a class="page-nav-link" href="/ai-performance.html">AI 성능평가 샘플수</a>
+      <a class="page-nav-link active" href="/ai-stat-examples">AI 통계 계산 예시</a>
+      <a class="page-nav-link" href="/protocol-planning">Protocol Planning</a>
+    </nav>
+
+    <div class="workspace-bar">
+      <div>
+        <p class="workspace-kicker">Strategy Analytics Suite</p>
+        <p class="workspace-title">AI Statistics Example Workspace</p>
+      </div>
+      <div class="workspace-meta" aria-label="워크스페이스 기능">
+        <button class="workspace-chip is-accent active" type="button" data-workspace-mode="executive" aria-pressed="true">
+          Executive Tooling
+        </button>
+        <button class="workspace-chip" type="button" data-workspace-mode="protocol" aria-pressed="false">
+          Protocol Planning
+        </button>
+        <button class="workspace-chip is-muted" type="button" data-workspace-mode="pilot" aria-pressed="false">
+          Internal Pilot
+        </button>
+      </div>
+    </div>
+
+    <section class="workspace-tools" aria-label="워크스페이스 도구">
+      <article class="workspace-tool-panel active" data-workspace-panel="executive">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Executive Tooling</p>
+          <h2>권역별 예시를 바로 비교하고 복사</h2>
+          <p>현재 선택한 기능 기준으로 FDA, 식약처, CE 관점의 예시 통계 프레임을 생성하고, 결과 초안을 바로 복사하거나 소스 요약 구역으로 이동합니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-ai-stat-action="copy-output">현재 예시 복사</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="focus-builder">예시 입력으로 이동</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="open-review-lens">규제 관점 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          기능별 통계 예시를 권역별 비교 카드와 문장형 초안으로 정리할 수 있습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="protocol">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Protocol Planning</p>
+          <h2>기본 가정과 보수적 가정 빠르게 전환</h2>
+          <p>현재 기능에 맞는 baseline 예시와 high-assurance 예시를 불러와서 드롭아웃, clustering, subgroup coverage를 빠르게 바꿔볼 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-ai-stat-action="apply-baseline-plan">Baseline 예시</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="apply-high-assurance">High-assurance 예시</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="open-output">예시 결과 보기</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          비교적 간단한 검증 설계와 보다 보수적인 제출용 설계를 빠르게 스위칭할 수 있습니다.
+        </p>
+      </article>
+
+      <article class="workspace-tool-panel" data-workspace-panel="pilot">
+        <div class="workspace-tool-copy">
+          <p class="workspace-tool-kicker">Internal Pilot</p>
+          <h2>데모 가정 로드와 결과 초기화</h2>
+          <p>기능별 기본 데모 값을 다시 불러오거나 현재 결과를 비우고 처음부터 예시를 다시 생성할 수 있습니다.</p>
+        </div>
+        <div class="workspace-tool-actions">
+          <button class="secondary-button" type="button" data-ai-stat-action="load-demo">데모 가정 불러오기</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="clear-output">예시 초기화</button>
+          <button class="secondary-button" type="button" data-ai-stat-action="refresh-example">현재 설정으로 다시 생성</button>
+        </div>
+        <p class="workspace-tool-status" data-workspace-status aria-live="polite">
+          기능 전환 전후의 예시를 빠르게 비교할 수 있도록 데모 흐름을 유지합니다.
+        </p>
+      </article>
+    </section>
+
+    <section class="protocol-planning-view ai-stat-example-view" data-ai-stat-example-view aria-label="AI 통계 예시 빌더">
+      <div class="protocol-hero">
+        <section class="protocol-hero-copy">
+          <p class="eyebrow">AI Regulatory Statistics Example Builder</p>
+          <h1>FDA · 식약처 · CE 관점의<br>AI 통계 계산 예시</h1>
+          <p class="hero-text">
+            Classification, Detection, Segmentation, Measurement, 실시간 기능 4종까지 포함한 총 8개 AI 기능별로
+            규제권역에 맞는 통계 프레임 예시를 생성합니다. 아래 예시는 공식 가이던스의 공통 요구사항을 기능별 endpoint와
+            workflow에 맞춰 재구성한 실무용 출발점입니다.
+          </p>
+          <div class="hero-metrics">
+            <article class="hero-metric">
+              <p class="hero-metric-label">Coverage</p>
+              <p class="hero-metric-value">8 AI capabilities</p>
+              <p class="hero-metric-note">저장형 4종과 실시간 4종을 따로 나눠 endpoint와 operational risk를 다르게 반영합니다.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Regulatory Lens</p>
+              <p class="hero-metric-value">FDA + MFDS + CE</p>
+              <p class="hero-metric-note">권역별 review expectation과 통계 설계 포인트를 한 화면에서 비교할 수 있습니다.</p>
+            </article>
+            <article class="hero-metric">
+              <p class="hero-metric-label">Output</p>
+              <p class="hero-metric-value">Example design pack</p>
+              <p class="hero-metric-note">study synopsis, endpoint frame, sample-size logic, SAP bullets, reviewer-facing 문장 예시를 생성합니다.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="protocol-hero-card">
+          <p class="card-label">Interpretation Note</p>
+          <ul class="hero-list">
+            <li>기능별 statistical frame은 공식 문서의 공통 요구사항을 task-specific metric에 맞춰 재구성한 예시입니다.</li>
+            <li>FDA는 task-specific metric, independent validation, subgroup performance, uncertainty, human factors를 강하게 봅니다.</li>
+            <li>식약처와 CE는 intended use, acceptance criteria, 분석집단, 사용적합성, pass/fail logic, sample-size justification을 함께 봅니다.</li>
+          </ul>
+          <p class="server-status" data-server-status>서버 상태 확인 중...</p>
+          <div class="hero-note-grid">
+            <div class="hero-note">
+              <p class="hero-note-label">Stored AI</p>
+              <p class="hero-note-value">Classification, Detection, Segmentation, Measurement</p>
+            </div>
+            <div class="hero-note">
+              <p class="hero-note-label">Real-time AI</p>
+              <p class="hero-note-value">Realtime Classification, Detection, Segmentation, Measurement</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="protocol-layout">
+        <section class="protocol-planner-panel">
+          <div class="section-heading">
+            <p class="section-kicker">Statistics Example Builder</p>
+            <h2>기능별 통계 예시 생성</h2>
+            <p>기능을 고르고, 규제권역을 선택한 뒤, 간단한 가정을 조정하면 권역별 비교형 통계 예시 팩을 생성합니다.</p>
+          </div>
+
+          <div class="protocol-capability-tabs" role="tablist" aria-label="AI 기능 예시 선택">
+            <button class="protocol-capability-button active" type="button" data-ai-stat-capability="classification">Classification</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="detection">Detection</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="segmentation">Segmentation</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="measurement">Measurement</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="realtime-classification">실시간 Classification</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="realtime-detection">실시간 Detection</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="realtime-segmentation">실시간 Segmentation</button>
+            <button class="protocol-capability-button" type="button" data-ai-stat-capability="realtime-measurement">실시간 Measurement</button>
+          </div>
+
+          <div class="ai-stat-region-row" role="tablist" aria-label="규제권역 선택">
+            <button class="workspace-chip active" type="button" data-ai-stat-region="all" aria-pressed="true">All Regions</button>
+            <button class="workspace-chip" type="button" data-ai-stat-region="fda" aria-pressed="false">FDA</button>
+            <button class="workspace-chip" type="button" data-ai-stat-region="mfds" aria-pressed="false">식약처</button>
+            <button class="workspace-chip" type="button" data-ai-stat-region="ce" aria-pressed="false">CE / EU</button>
+          </div>
+
+          <form class="protocol-form ai-stat-form" data-ai-stat-form>
+            <label>
+              Clinical indication
+              <input name="indication" type="text" value="Thyroid nodule risk assessment on ultrasound">
+            </label>
+            <label>
+              Intended use
+              <input name="intendedUse" type="text" value="Provide decision support during diagnostic ultrasound review">
+            </label>
+            <label>
+              Target population
+              <input name="population" type="text" value="Adults undergoing diagnostic ultrasound in routine care">
+            </label>
+            <label>
+              Comparator / benchmark
+              <input name="comparator" type="text" value="Three-reader consensus adjudication">
+            </label>
+            <label>
+              Claim style
+              <select name="claimStyle">
+                <option value="non-inferiority" selected>Benchmark-based non-inferiority</option>
+                <option value="precision">Precision / confidence interval design</option>
+                <option value="agreement">Agreement / concordance design</option>
+              </select>
+            </label>
+            <label>
+              Sites
+              <input name="sites" type="number" min="1" step="1" value="6">
+            </label>
+            <label>
+              Expert readers
+              <input name="readers" type="number" min="1" step="1" value="3">
+            </label>
+            <label>
+              Dropout rate
+              <input name="dropout" type="number" min="0" max="0.5" step="0.01" value="0.1">
+            </label>
+            <label>
+              Design effect
+              <input name="designEffect" type="number" min="1" step="0.05" value="1.05">
+            </label>
+            <label>
+              Protected subgroups
+              <input name="subgroupCount" type="number" min="1" step="1" value="3">
+            </label>
+            <label data-ai-stat-field="latencyTarget" hidden>
+              Real-time latency target (ms)
+              <input name="latencyTarget" type="number" min="30" step="10" value="150">
+            </label>
+
+            <div class="protocol-action-row">
+              <button class="primary-button" type="button" data-ai-stat-generate>통계 예시 생성</button>
+              <button class="secondary-button" type="button" data-ai-stat-copy>예시 복사</button>
+            </div>
+          </form>
+
+          <p class="dynamic-help protocol-help" data-ai-stat-help></p>
+        </section>
+
+        <aside class="protocol-side-panel ai-stat-panel-stack">
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Selected Capability</p>
+            <h2 data-ai-stat-capability-title>Classification</h2>
+            <p data-ai-stat-capability-description>저장된 대표 이미지나 cine loop를 기준으로 질환 범주를 분류하는 예시 통계 프레임입니다.</p>
+            <div class="summary-grid">
+              <div class="summary-card">
+                <p class="summary-label">Workflow</p>
+                <p class="summary-value" data-ai-stat-summary-workflow>Stored-image review</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Primary Endpoint</p>
+                <p class="summary-value" data-ai-stat-summary-endpoint>AUC / sensitivity / specificity</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Example Frame</p>
+                <p class="summary-value" data-ai-stat-summary-frame>Benchmark-based NI</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-card protocol-info-card" data-ai-stat-review-lens>
+            <p class="section-kicker">Regulatory Lens</p>
+            <h2>현재 기능에서 특히 보는 포인트</h2>
+            <ul class="info-list" data-ai-stat-review-list>
+              <li>Task에 맞는 primary metric과 validation dataset independence</li>
+              <li>Reference standard, subgroup performance, confidence interval, acceptance criteria</li>
+              <li>실시간 기능이면 latency, display interpretation, user override, human factors</li>
+            </ul>
+          </section>
+
+          <section class="info-card protocol-info-card">
+            <p class="section-kicker">Official Sources</p>
+            <h2>권역별 공식 문서</h2>
+            <ul class="reference-list" data-ai-stat-source-list>
+              <li>예시를 생성하면 현재 선택과 관련된 공식 문서 링크가 여기에 정리됩니다.</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      <section class="protocol-output-card is-placeholder" data-ai-stat-output>
+        <div class="protocol-placeholder">
+          <p class="protocol-placeholder-title">AI 통계 예시를 생성해보세요</p>
+          <p class="result-meta">기능과 규제권역을 선택하고 “통계 예시 생성”을 누르면 capability-specific example design pack이 아래에 나타납니다.</p>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="ai-stat-examples.js"></script>
+</body>
+</html>
