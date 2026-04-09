@@ -35,9 +35,11 @@ const checklistWorkflow = document.querySelector("[data-checklist-workflow]");
 const checklistEndpoint = document.querySelector("[data-checklist-endpoint]");
 const checklistSites = document.querySelector("[data-checklist-sites]");
 const checklistReaders = document.querySelector("[data-checklist-readers]");
-const checklistProgressCount = document.querySelector("[data-checklist-progress-count]");
+const checklistProgressCounts = document.querySelectorAll("[data-checklist-progress-count]");
 const checklistProgressText = document.querySelector("[data-checklist-progress-text]");
 const checklistProgressBar = document.querySelector("[data-checklist-progress-bar]");
+const checklistProgressRing = document.querySelector("[data-progress-ring]");
+const checklistProgressRingPct = document.querySelector("[data-progress-ring-pct]");
 const checklistSections = document.querySelector("[data-checklist-sections]");
 const checklistFlowchart = document.querySelector("[data-checklist-flowchart]");
 const checklistCopyButtons = document.querySelectorAll("[data-checklist-copy]");
@@ -3149,17 +3151,7 @@ function renderChecklistEmptyState() {
     `;
   }
 
-  if (checklistProgressCount) {
-    checklistProgressCount.textContent = "0 / 0";
-  }
-
-  if (checklistProgressText) {
-    checklistProgressText.textContent = "0% complete";
-  }
-
-  if (checklistProgressBar) {
-    checklistProgressBar.style.width = "0%";
-  }
+  updateChecklistProgressIndicators(0, 0, 0);
 
   if (checklistSections) {
     checklistSections.innerHTML = `
@@ -3291,17 +3283,7 @@ function updateChecklistProgress(protocolPackage, progress) {
   );
   const percent = total ? Math.round((completed / total) * 100) : 0;
 
-  if (checklistProgressCount) {
-    checklistProgressCount.textContent = `${completed} / ${total}`;
-  }
-
-  if (checklistProgressText) {
-    checklistProgressText.textContent = `${percent}% complete`;
-  }
-
-  if (checklistProgressBar) {
-    checklistProgressBar.style.width = `${percent}%`;
-  }
+  updateChecklistProgressIndicators(completed, total, percent);
 }
 
 function buildChecklistCopyText(protocolPackage) {
@@ -3351,6 +3333,32 @@ function saveProtocolPackage(protocolPackage) {
 
 function clearStoredProtocolPackage() {
   removeStorageValue(protocolPackageStorageKey);
+}
+
+function updateChecklistProgressIndicators(completed, total, percent) {
+  checklistProgressCounts.forEach((element, index) => {
+    element.textContent = index === 0 ? `${completed} / ${total}` : `${completed} of ${total} items`;
+  });
+
+  if (checklistProgressText) {
+    checklistProgressText.textContent = `${percent}% complete`;
+  }
+
+  if (checklistProgressBar) {
+    checklistProgressBar.style.width = `${percent}%`;
+  }
+
+  if (checklistProgressRing) {
+    const radius = Number(checklistProgressRing.getAttribute("r") || 32);
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percent / 100) * circumference;
+    checklistProgressRing.style.strokeDasharray = String(circumference);
+    checklistProgressRing.style.strokeDashoffset = String(offset);
+  }
+
+  if (checklistProgressRingPct) {
+    checklistProgressRingPct.textContent = `${percent}%`;
+  }
 }
 
 function buildChecklistProgressStorageKey(signature) {

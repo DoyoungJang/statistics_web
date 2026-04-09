@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protocol Planning Study Checklist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
     (function () {
       try {
@@ -41,9 +43,9 @@
           </div>
         </div>
         <div class="workspace-meta">
-          <a class="workspace-chip is-accent" href="/protocol-planning">Back To Protocol Planning</a>
-          <button class="workspace-chip" type="button" data-checklist-copy>Checklist Copy</button>
-          <button class="workspace-chip is-muted" type="button" data-checklist-reset>Progress Reset</button>
+          <a class="workspace-chip is-accent" href="/protocol-planning">← Back To Planning</a>
+          <button class="workspace-chip" type="button" data-checklist-copy>Copy Checklist</button>
+          <button class="workspace-chip is-muted" type="button" data-checklist-reset>Reset Progress</button>
         </div>
       </div>
     </div>
@@ -104,15 +106,23 @@
             <p>Use this page as an execution companion for site start-up, enrollment, acquisition, review, endpoint package assembly, and close-out.</p>
           </div>
 
-          <section class="checklist-progress-card">
-            <div>
+          <div class="checklist-progress-card">
+            <div class="progress-ring-wrap" aria-hidden="true">
+              <svg class="progress-ring-svg" viewBox="0 0 72 72">
+                <circle class="progress-ring-track" cx="36" cy="36" r="32"></circle>
+                <circle class="progress-ring-bar" cx="36" cy="36" r="32" data-progress-ring></circle>
+              </svg>
+              <div class="progress-ring-pct" data-progress-ring-pct>0%</div>
+            </div>
+            <div class="progress-text-block">
               <p class="section-kicker">Completion Status</p>
               <h3 data-checklist-progress-text>0% complete</h3>
+              <p data-checklist-progress-count class="checklist-progress-count-text">0 of 0 items</p>
+              <div class="checklist-progress-track" aria-hidden="true">
+                <span class="checklist-progress-bar" data-checklist-progress-bar></span>
+              </div>
             </div>
-            <div class="checklist-progress-track" aria-hidden="true">
-              <span class="checklist-progress-bar" data-checklist-progress-bar></span>
-            </div>
-          </section>
+          </div>
 
           <div class="checklist-sections" data-checklist-sections>
             <section class="protocol-placeholder checklist-empty-state">
